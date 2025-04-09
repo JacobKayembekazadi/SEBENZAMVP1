@@ -1,9 +1,8 @@
 
 import React from "react";
 import { Sidebar } from "./Sidebar";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { Search, Bell, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Bell, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardLayoutProps {
@@ -20,7 +19,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           <h1 className="text-xl font-semibold">{title || "Dashboard"}</h1>
           <div className="flex items-center gap-4">
             <div className="relative w-64">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
                 placeholder="Search..." 
                 className="pl-9 bg-secondary border-0"

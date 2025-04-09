@@ -10,7 +10,7 @@ import {
   File, 
   FileImage, 
   FileAudio, 
-  FilePdf, 
+  FilePdf as FileDocument, // Renamed since FilePdf doesn't exist
   Clock, 
   MoreVertical,
   ListFilter,
@@ -94,7 +94,7 @@ const files = [
 const FileIcon = ({ type }: { type: string }) => {
   switch (type) {
     case "pdf":
-      return <FilePdf className="h-8 w-8 text-red-500" />;
+      return <FileDocument className="h-8 w-8 text-red-500" />; // Changed from FilePdf to FileDocument
     case "document":
       return <FileText className="h-8 w-8 text-blue-500" />;
     case "image":

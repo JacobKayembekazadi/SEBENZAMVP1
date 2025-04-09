@@ -37,12 +37,14 @@ const SidebarItem = ({ icon: Icon, label, to, badge, collapsed }: SidebarItemPro
     <Link
       to={to}
       className={cn(
-        "flex items-center gap-3 px-4 py-2.5 text-sm rounded-md font-medium transition-colors",
-        "hover:bg-sidebar-hover hover:text-accent",
-        isActive ? "border-l-2 border-accent text-accent pl-[15px]" : "border-l-2 border-transparent pl-[15px]"
+        "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+        "hover:bg-sidebar-hover hover:text-primary",
+        isActive ? "bg-primary bg-opacity-10 text-primary" : "text-gray-700 hover:bg-gray-100"
       )}
     >
-      <Icon size={20} />
+      <div className="w-6 h-6 flex items-center justify-center">
+        <Icon size={20} />
+      </div>
       {!collapsed && <span>{label}</span>}
       {!collapsed && badge && (
         <span className="ml-auto bg-warning text-warning-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -74,13 +76,15 @@ type SidebarProps = {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   return (
-    <div className="bg-sidebar text-sidebar-foreground h-screen flex flex-col border-r border-sidebar-border overflow-y-auto fixed">
+    <div className="bg-white h-screen flex flex-col border-r border-gray-200 overflow-y-auto fixed">
       <div className={cn("p-4", collapsed ? "items-center" : "")}>
         <div className={cn("flex items-center gap-2 mb-6", collapsed && "justify-center")}>
-          <div className="bg-accent p-1 rounded">
-            <FileText size={18} className="text-accent-foreground" />
-          </div>
-          {!collapsed && <h1 className="text-xl font-bold text-sidebar-foreground">LegalCRM</h1>}
+          {!collapsed && <h1 className="text-2xl font-pacifico text-primary">Sebenza</h1>}
+          {collapsed && (
+            <div className="bg-primary p-1 rounded">
+              <span className="text-xl font-pacifico text-white">S</span>
+            </div>
+          )}
         </div>
 
         {!collapsed && (
@@ -90,8 +94,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium text-sidebar-foreground">John Doe</p>
-              <p className="text-xs text-sidebar-foreground/70">Senior Partner</p>
+              <p className="text-sm font-medium text-gray-900">Jessica Chen</p>
+              <p className="text-xs text-gray-500">Senior Partner</p>
             </div>
           </div>
         )}
@@ -107,17 +111,20 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         <SidebarItem icon={Clock} label="Time Tracking" to="/time" collapsed={collapsed} />
         <SidebarItem icon={MessageSquare} label="Messages" to="/messages" badge={3} collapsed={collapsed} />
         <SidebarItem icon={PieChart} label="Reports" to="/reports" collapsed={collapsed} />
-
-        <Separator className="my-4 bg-sidebar-border" />
-        
-        <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} />
-        <SidebarItem icon={HelpCircle} label="Help & Support" to="/help" collapsed={collapsed} />
       </div>
 
-      <div className={cn("p-4 mt-auto border-t border-sidebar-border", collapsed && "p-2")}>
+      <div className="mt-8 px-3">
+        <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</h3>
+        <div className="mt-2 space-y-1">
+          <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} />
+          <SidebarItem icon={HelpCircle} label="Help & Support" to="/help" collapsed={collapsed} />
+        </div>
+      </div>
+
+      <div className={cn("p-4 mt-auto border-t border-gray-200", collapsed && "p-2")}>
         <button className={cn(
-          "flex items-center gap-3 px-4 py-2.5 w-full text-sm rounded-md font-medium transition-colors",
-          "hover:bg-sidebar-hover hover:text-accent"
+          "flex items-center gap-3 px-3 py-2 w-full text-sm rounded-md font-medium transition-colors",
+          "text-gray-700 hover:bg-gray-100 hover:text-primary"
         )}>
           <LogOut size={20} />
           {!collapsed && <span>Log Out</span>}

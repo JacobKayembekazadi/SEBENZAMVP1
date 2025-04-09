@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -23,6 +24,7 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+				pacifico: ['Pacifico', 'cursive'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -31,8 +33,9 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#1E293B', // Slate
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#2563eb', // Blue
+					foreground: '#FFFFFF',
+					hover: '#1d4ed8',
 				},
 				accent: {
 					DEFAULT: '#10B981', // Emerald
@@ -44,7 +47,7 @@ export default {
 					foreground: '#FFFFFF',
 				},
 				secondary: {
-					DEFAULT: '#94A3B8', // Secondary
+					DEFAULT: '#475569', // Secondary
 					light: '#E5E7EB',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
@@ -65,10 +68,10 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
-					DEFAULT: '#1E293B', // Dark Slate
-					foreground: '#FFFFFF',
-					hover: 'rgba(16, 185, 129, 0.1)', // Emerald tint
-					'active-border': '#10B981',
+					DEFAULT: '#FFFFFF', // White sidebar
+					foreground: '#475569', // Secondary color text
+					hover: 'rgba(37, 99, 235, 0.1)', // Primary color tint 
+					'active-border': '#2563eb', // Primary blue
 				},
 				success: {
 					DEFAULT: '#4CAF50',
@@ -91,8 +94,8 @@ export default {
 					light: '#FFF8EC'
 				},
 				cases: {
-					DEFAULT: '#7386FF',
-					light: '#F0F3FF'
+					DEFAULT: '#2563eb', // Using our primary blue color
+					light: '#EFF6FF'
 				},
 				hours: {
 					DEFAULT: '#E6707F',
@@ -100,9 +103,11 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: '16px',
+				md: '12px',
+				sm: '8px',
+				DEFAULT: '8px',
+				button: '8px',
 			},
 			keyframes: {
 				'accordion-down': {

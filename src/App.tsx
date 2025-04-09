@@ -9,6 +9,8 @@ import Clients from "./pages/Clients";
 import Cases from "./pages/Cases";
 import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
+import { AIAssistant } from "./components/ai/AIAssistant";
+import Documents from "./pages/Documents";
 
 const queryClient = new QueryClient();
 
@@ -23,10 +25,12 @@ const App = () => (
           <Route path="/clients" element={<Clients />} />
           <Route path="/cases" element={<Cases />} />
           <Route path="/calendar" element={<Calendar />} />
+          <Route path="/documents" element={<Documents />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <AIAssistant />
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,6 +18,12 @@ export default {
 			}
 		},
 		extend: {
+			maxWidth: {
+				'layout': '1440px',
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -26,11 +31,21 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#1E293B', // Slate
 					foreground: 'hsl(var(--primary-foreground))'
 				},
+				accent: {
+					DEFAULT: '#10B981', // Emerald
+					foreground: '#FFFFFF',
+					hover: '#0EA371',
+				},
+				warning: {
+					DEFAULT: '#6366F1', // Indigo
+					foreground: '#FFFFFF',
+				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
+					DEFAULT: '#94A3B8', // Secondary
+					light: '#E5E7EB',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
@@ -41,10 +56,6 @@ export default {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
 				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'
@@ -54,14 +65,10 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					DEFAULT: '#1E293B', // Dark Slate
+					foreground: '#FFFFFF',
+					hover: 'rgba(16, 185, 129, 0.1)', // Emerald tint
+					'active-border': '#10B981',
 				},
 				success: {
 					DEFAULT: '#4CAF50',

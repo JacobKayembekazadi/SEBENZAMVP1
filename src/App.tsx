@@ -13,6 +13,12 @@ import Messages from "./pages/Messages";
 import Help from "./pages/Help";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import TimeTracking from "./pages/TimeTracking";
+import Invoices from "./pages/Invoices";
+import Estimates from "./pages/Estimates";
+import Expenses from "./pages/Expenses";
+import Accounting from "./pages/Accounting";
+import Settings from "./pages/Settings";
 import { AIAssistant } from "./components/ai/AIAssistant";
 
 const queryClient = new QueryClient();
@@ -32,13 +38,12 @@ const App = () => (
           <Route path="/messages" element={<Messages />} />
           <Route path="/help" element={<Help />} />
           <Route path="/reports" element={<Reports />} />
-          {/* Add routes for additional features */}
-          <Route path="/time" element={<NotFound />} />
-          <Route path="/invoices" element={<NotFound />} />
-          <Route path="/estimates" element={<NotFound />} />
-          <Route path="/expenses" element={<NotFound />} />
-          <Route path="/accounting" element={<NotFound />} />
-          <Route path="/settings" element={<NotFound />} />
+          <Route path="/time" element={<TimeTracking />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/estimates" element={<Estimates />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/accounting" element={<Accounting />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

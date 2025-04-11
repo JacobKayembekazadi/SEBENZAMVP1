@@ -21,6 +21,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 type SidebarItemProps = {
   icon: React.ElementType;
@@ -76,6 +77,16 @@ type SidebarProps = {
 };
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
+  const { toast } = useToast();
+  
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Logging out",
+      description: "You would be logged out in a real application.",
+    });
+  };
+
   return (
     <div className="bg-sidebar-DEFAULT h-screen flex flex-col border-r border-gray-800 overflow-y-auto fixed shadow-md">
       <div className={cn("p-4", collapsed ? "items-center" : "")}>
@@ -125,10 +136,13 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       </div>
 
       <div className={cn("p-4 mt-auto border-t border-gray-800", collapsed && "p-2")}>
-        <button className={cn(
-          "flex items-center gap-3 px-3 py-2 w-full text-sm rounded-md font-medium transition-colors",
-          "text-gray-300 hover:bg-sidebar-hover hover:text-white"
-        )}>
+        <button 
+          onClick={handleLogout}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 w-full text-sm rounded-md font-medium transition-colors",
+            "text-gray-300 hover:bg-sidebar-hover hover:text-white"
+          )}
+        >
           <LogOut size={18} />
           {!collapsed && <span>Log Out</span>}
         </button>

@@ -3,7 +3,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { 
   LayoutDashboard, 
   Users, 
@@ -40,16 +39,16 @@ const SidebarItem = ({ icon: Icon, label, to, badge, collapsed }: SidebarItemPro
       to={to}
       className={cn(
         "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-        "hover:bg-sidebar-hover hover:text-primary",
-        isActive ? "bg-primary bg-opacity-10 text-primary" : "text-gray-700 hover:bg-gray-100"
+        "hover:bg-primary/5 hover:text-primary",
+        isActive ? "text-primary bg-primary/5" : "text-gray-700"
       )}
     >
-      <div className="w-6 h-6 flex items-center justify-center">
-        <Icon size={20} />
+      <div className="w-5 h-5 flex items-center justify-center">
+        <Icon size={18} />
       </div>
       {!collapsed && <span>{label}</span>}
       {!collapsed && badge && (
-        <span className="ml-auto bg-warning text-warning-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        <span className="ml-auto bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center">
           {badge}
         </span>
       )}
@@ -78,22 +77,22 @@ type SidebarProps = {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   return (
-    <div className="bg-white h-screen flex flex-col border-r border-gray-200 overflow-y-auto fixed">
+    <div className="bg-white h-screen flex flex-col border-r border-gray-100 overflow-y-auto fixed shadow-sm">
       <div className={cn("p-4", collapsed ? "items-center" : "")}>
-        <div className={cn("flex items-center gap-2 mb-6", collapsed && "justify-center")}>
-          {!collapsed && <h1 className="text-2xl font-pacifico text-primary">Sebenza</h1>}
+        <div className={cn("flex items-center gap-2 mb-8", collapsed && "justify-center")}>
+          {!collapsed && <h1 className="text-2xl font-bold text-gray-800">Sebenza</h1>}
           {collapsed && (
             <div className="bg-primary p-1 rounded">
-              <span className="text-xl font-pacifico text-white">S</span>
+              <span className="text-xl font-bold text-white">S</span>
             </div>
           )}
         </div>
 
         {!collapsed && (
-          <div className="flex items-center gap-3 mb-6">
-            <Avatar className="h-10 w-10">
+          <div className="flex items-center gap-3 mb-8 px-2">
+            <Avatar className="h-9 w-9">
               <AvatarImage src="/placeholder.svg" alt="User" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarFallback>JC</AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium text-gray-900">Jessica Chen</p>
@@ -119,19 +118,18 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       </div>
 
       <div className="mt-8 px-3">
-        <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settings</h3>
         <div className="mt-2 space-y-1">
           <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} />
           <SidebarItem icon={HelpCircle} label="Help & Support" to="/help" collapsed={collapsed} />
         </div>
       </div>
 
-      <div className={cn("p-4 mt-auto border-t border-gray-200", collapsed && "p-2")}>
+      <div className={cn("p-4 mt-auto border-t border-gray-100", collapsed && "p-2")}>
         <button className={cn(
           "flex items-center gap-3 px-3 py-2 w-full text-sm rounded-md font-medium transition-colors",
           "text-gray-700 hover:bg-gray-100 hover:text-primary"
         )}>
-          <LogOut size={20} />
+          <LogOut size={18} />
           {!collapsed && <span>Log Out</span>}
         </button>
       </div>

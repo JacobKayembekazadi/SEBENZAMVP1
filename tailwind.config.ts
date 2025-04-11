@@ -30,12 +30,12 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				background: '#f5f6fa', // Light gray background
+				foreground: '#333333', // Dark text color
 				primary: {
-					DEFAULT: '#2563eb', // Blue
+					DEFAULT: '#3a86ff', // A nice blue
 					foreground: '#FFFFFF',
-					hover: '#1d4ed8',
+					hover: '#2563eb',
 				},
 				accent: {
 					DEFAULT: '#10B981', // Emerald
@@ -47,67 +47,73 @@ export default {
 					foreground: '#FFFFFF',
 				},
 				secondary: {
-					DEFAULT: '#475569', // Secondary
+					DEFAULT: '#64748b', // Slate blue-gray
 					light: '#E5E7EB',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					DEFAULT: '#ef4444', // Red
+					foreground: '#FFFFFF'
 				},
 				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: '#f1f5f9', // Very light blue-gray
+					foreground: '#64748b'
 				},
 				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333'
 				},
 				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+					DEFAULT: '#FFFFFF',
+					foreground: '#333333'
 				},
 				sidebar: {
 					DEFAULT: '#FFFFFF', // White sidebar
-					foreground: '#475569', // Secondary color text
-					hover: 'rgba(37, 99, 235, 0.1)', // Primary color tint 
-					'active-border': '#2563eb', // Primary blue
+					foreground: '#333333', // Dark text
+					hover: 'rgba(58, 134, 255, 0.1)', // Primary color tint 
+					'active-border': '#3a86ff', // Primary blue
 				},
 				success: {
-					DEFAULT: '#4CAF50',
+					DEFAULT: '#22c55e',
 					foreground: '#FFFFFF'
 				},
 				warning: {
-					DEFAULT: '#FF9800',
+					DEFAULT: '#f59e0b',
 					foreground: '#FFFFFF'
 				},
 				info: {
-					DEFAULT: '#2196F3',
+					DEFAULT: '#3a86ff',
 					foreground: '#FFFFFF'
 				},
 				revenue: {
-					DEFAULT: '#56B99F',
-					light: '#E7F6F2'
+					DEFAULT: '#3a86ff',
+					light: '#e0eaff'
 				},
 				clients: {
-					DEFAULT: '#F6B656',
-					light: '#FFF8EC'
+					DEFAULT: '#f59e0b',
+					light: '#fef3c7'
 				},
 				cases: {
-					DEFAULT: '#2563eb', // Using our primary blue color
-					light: '#EFF6FF'
+					DEFAULT: '#3a86ff',
+					light: '#e0eaff'
 				},
 				hours: {
-					DEFAULT: '#E6707F',
-					light: '#FFEFF2'
+					DEFAULT: '#ef4444',
+					light: '#fee2e2'
 				}
 			},
 			borderRadius: {
-				lg: '16px',
-				md: '12px',
-				sm: '8px',
+				lg: '12px',
+				md: '8px',
+				sm: '4px',
 				DEFAULT: '8px',
 				button: '8px',
+			},
+			boxShadow: {
+				'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+				DEFAULT: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+				'md': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+				'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
 			},
 			keyframes: {
 				'accordion-down': {

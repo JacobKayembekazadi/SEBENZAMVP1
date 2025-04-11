@@ -27,12 +27,12 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
   };
 
   return (
-    <div className="min-h-screen flex bg-[#F9FAFB]">
-      <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-[70px]' : 'w-[250px]'}`}>
+    <div className="min-h-screen flex bg-[#f5f6fa]">
+      <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-[70px]' : 'w-[240px]'}`}>
         <Sidebar collapsed={sidebarCollapsed} />
       </div>
-      <div className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'ml-[70px]' : 'ml-[250px]'}`}>
-        <header className="h-16 border-b border-border bg-white sticky top-0 z-10 flex items-center justify-between px-6">
+      <div className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'ml-[70px]' : 'ml-[240px]'}`}>
+        <header className="h-16 border-b border-gray-100 bg-white sticky top-0 z-10 flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Button 
               variant="ghost" 
@@ -49,18 +49,18 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input 
                 placeholder="Search..." 
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
             <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-600 relative">
               <Bell size={20} />
               <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
             </Button>
-            <div className="border-l border-gray-200 h-6"></div>
+            <div className="border-l border-gray-100 h-6"></div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center space-x-3 focus:outline-none p-0">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                     <User size={16} />
                   </div>
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">Jessica Chen</span>

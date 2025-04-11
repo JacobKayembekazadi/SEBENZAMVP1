@@ -54,34 +54,52 @@ export const FinancialChart = ({ dateRange }: FinancialChartProps) => {
           bottom: 0,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
+        <defs>
+          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3a86ff" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="#3a86ff" stopOpacity={0.1}/>
+          </linearGradient>
+          <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+          </linearGradient>
+          <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <XAxis dataKey="name" tick={{ fill: '#64748b' }} />
+        <YAxis tick={{ fill: '#64748b' }} />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'white', 
+            borderRadius: '8px', 
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }} 
+        />
         <Legend />
         <Area 
           type="monotone" 
           dataKey="revenue" 
           stackId="1" 
-          stroke="#2563eb" 
-          fill="#2563eb" 
-          fillOpacity={0.2} 
+          stroke="#3a86ff" 
+          fill="url(#colorRevenue)"
         />
         <Area 
           type="monotone" 
           dataKey="expenses" 
           stackId="2" 
           stroke="#ef4444" 
-          fill="#ef4444" 
-          fillOpacity={0.2} 
+          fill="url(#colorExpenses)"
         />
         <Area 
           type="monotone" 
           dataKey="profit" 
           stackId="3" 
           stroke="#10b981" 
-          fill="#10b981" 
-          fillOpacity={0.2} 
+          fill="url(#colorProfit)"
         />
       </AreaChart>
     </ResponsiveContainer>

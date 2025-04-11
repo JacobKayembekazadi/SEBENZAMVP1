@@ -8,33 +8,33 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* #F8FAFC */
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%; /* #f5f6fa */
+    --foreground: 215 25% 27%; /* #333333 */
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 27%;
 
-    --primary: 221 83% 53%; /* #2563eb - Blue */
+    --primary: 217 91% 60%; /* #3a86ff - Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 20% 65%; /* #94A3B8 */
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 215 20% 65%; /* #64748b */
+    --secondary-foreground: 215 25% 27%;
 
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215 20% 65%;
 
     --accent: 160 84% 39%; /* #10B981 */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --ring: 217 91% 60%;
 
     --radius: 0.5rem;
   }
@@ -49,7 +49,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221 83% 53%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -75,7 +75,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-[#f9fafb] text-foreground;
+    @apply bg-[#f5f6fa] text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', sans-serif;
   }
@@ -92,17 +92,17 @@
     @apply text-base font-medium;
   }
   button {
-    @apply font-medium uppercase tracking-wide;
+    @apply font-medium;
   }
 }
 
 @layer utilities {
   .stat-card {
-    @apply bg-white rounded-lg p-5 shadow-sm border border-gray-100;
+    @apply bg-white rounded-lg p-5 shadow border border-gray-100;
   }
   
   .metric-card {
-    @apply bg-white rounded-lg p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow;
+    @apply bg-white rounded-lg p-6 border border-gray-100 shadow hover:shadow-md transition-shadow;
   }
   
   .metric-value {
@@ -110,18 +110,18 @@
   }
   
   .metric-trend-up {
-    @apply bg-accent/10 text-accent text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
+    @apply bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
   }
   
   .metric-trend-down {
-    @apply bg-destructive/10 text-destructive text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
+    @apply bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
   }
   
   .metric-trend-neutral {
-    @apply bg-secondary/10 text-secondary text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
+    @apply bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium inline-flex items-center;
   }
 
-  /* New utility classes based on the provided HTML */
+  /* Status badges based on the provided design */
   .status-badge-active {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
   }
@@ -136,5 +136,9 @@
 
   .status-badge-urgent {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+  
+  .status-badge-paid {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800;
   }
 }

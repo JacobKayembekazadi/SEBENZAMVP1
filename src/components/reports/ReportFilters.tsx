@@ -12,7 +12,7 @@ interface ReportFiltersProps {
 
 export const ReportFilters = ({ dateRange, onDateRangeChange }: ReportFiltersProps) => {
   return (
-    <Card className="shadow-sm border border-gray-100">
+    <Card className="border border-gray-100">
       <CardContent className="p-4">
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -22,7 +22,7 @@ export const ReportFilters = ({ dateRange, onDateRangeChange }: ReportFiltersPro
                 value={dateRange} 
                 onValueChange={(value) => onDateRangeChange(value as "month" | "quarter" | "year")}
               >
-                <SelectTrigger className="w-[180px] border border-gray-200 shadow-sm bg-white">
+                <SelectTrigger className="w-[180px] border border-gray-200 bg-white">
                   <SelectValue placeholder="Select Period" />
                 </SelectTrigger>
                 <SelectContent>
@@ -36,7 +36,7 @@ export const ReportFilters = ({ dateRange, onDateRangeChange }: ReportFiltersPro
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Report Type</label>
               <Select defaultValue="detailed">
-                <SelectTrigger className="w-[180px] border border-gray-200 shadow-sm bg-white">
+                <SelectTrigger className="w-[180px] border border-gray-200 bg-white">
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -49,15 +49,15 @@ export const ReportFilters = ({ dateRange, onDateRangeChange }: ReportFiltersPro
           </div>
           
           <div className="flex gap-2 self-end">
-            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200 shadow-sm">
+            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200">
               <Filter size={16} className="mr-2" />
-              More Filters
+              Filters
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200 shadow-sm">
+            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200">
               <RefreshCw size={16} className="mr-2" />
               Refresh
             </Button>
-            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200 shadow-sm">
+            <Button variant="outline" size="sm" className="text-gray-600 border-gray-200">
               <Download size={16} className="mr-2" />
               Export
             </Button>

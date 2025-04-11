@@ -30,29 +30,29 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: '#f5f6fa', // Light gray background
-				foreground: '#333333', // Dark text color
+				background: '#f8f8f8', // Updated to match JSON secondaryColor
+				foreground: '#222222', // Updated to match JSON primaryColor
 				primary: {
-					DEFAULT: '#3a86ff', // A nice blue
+					DEFAULT: '#222222', // Updated to match JSON primaryColor
 					foreground: '#FFFFFF',
-					hover: '#2563eb',
+					hover: '#333333',
 				},
 				accent: {
-					DEFAULT: '#10B981', // Emerald
+					DEFAULT: '#80DCA0', // Updated to first accent color from JSON
 					foreground: '#FFFFFF',
-					hover: '#0EA371',
+					hover: '#6DC98D',
 				},
 				warning: {
-					DEFAULT: '#6366F1', // Indigo
+					DEFAULT: '#F0C760', // Updated to second accent color from JSON
 					foreground: '#FFFFFF',
 				},
 				secondary: {
-					DEFAULT: '#64748b', // Slate blue-gray
+					DEFAULT: '#6060F0', // Updated to third accent color from JSON
 					light: '#E5E7EB',
-					foreground: 'hsl(var(--secondary-foreground))'
+					foreground: '#FFFFFF'
 				},
 				destructive: {
-					DEFAULT: '#ef4444', // Red
+					DEFAULT: '#ef4444', // Kept for consistency
 					foreground: '#FFFFFF'
 				},
 				muted: {
@@ -61,44 +61,44 @@ export default {
 				},
 				popover: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#333333'
+					foreground: '#222222'
 				},
 				card: {
 					DEFAULT: '#FFFFFF',
-					foreground: '#333333'
+					foreground: '#222222'
 				},
 				sidebar: {
-					DEFAULT: '#FFFFFF', // White sidebar
-					foreground: '#333333', // Dark text
-					hover: 'rgba(58, 134, 255, 0.1)', // Primary color tint 
-					'active-border': '#3a86ff', // Primary blue
+					DEFAULT: '#222222', // Updated to dark sidebar as per JSON
+					foreground: '#FFFFFF', // Light text on dark background
+					hover: 'rgba(128, 220, 160, 0.1)', // Primary accent color tint
+					'active-border': '#80DCA0', // Primary accent color
 				},
 				success: {
-					DEFAULT: '#22c55e',
+					DEFAULT: '#80DCA0', // Updated to match first accent color
 					foreground: '#FFFFFF'
 				},
 				warning: {
-					DEFAULT: '#f59e0b',
+					DEFAULT: '#F0C760', // Updated to match second accent color
 					foreground: '#FFFFFF'
 				},
 				info: {
-					DEFAULT: '#3a86ff',
+					DEFAULT: '#6060F0', // Updated to match third accent color
 					foreground: '#FFFFFF'
 				},
 				revenue: {
-					DEFAULT: '#3a86ff',
-					light: '#e0eaff'
+					DEFAULT: '#80DCA0', // Updated to match first accent color
+					light: '#e6f7ed'
 				},
 				clients: {
-					DEFAULT: '#f59e0b',
-					light: '#fef3c7'
+					DEFAULT: '#F0C760', // Updated to match second accent color
+					light: '#fcf6e0'
 				},
 				cases: {
-					DEFAULT: '#3a86ff',
-					light: '#e0eaff'
+					DEFAULT: '#6060F0', // Updated to match third accent color
+					light: '#e0e0fc'
 				},
 				hours: {
-					DEFAULT: '#ef4444',
+					DEFAULT: '#ef4444', // Kept for consistency
 					light: '#fee2e2'
 				}
 			},

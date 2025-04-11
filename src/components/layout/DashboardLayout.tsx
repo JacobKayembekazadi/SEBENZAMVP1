@@ -27,7 +27,7 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f5f6fa]">
+    <div className="min-h-screen flex bg-background">
       <div className={`transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'w-[70px]' : 'w-[240px]'}`}>
         <Sidebar collapsed={sidebarCollapsed} />
       </div>
@@ -54,7 +54,7 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
             </div>
             <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-600 relative">
               <Bell size={20} />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-accent"></span>
             </Button>
             <div className="border-l border-gray-100 h-6"></div>
             <DropdownMenu>

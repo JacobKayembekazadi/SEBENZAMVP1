@@ -26,7 +26,7 @@ const Reports = () => {
       
       <div className="mt-6">
         <Tabs defaultValue="financial" className="w-full">
-          <TabsList className="mb-6 border border-gray-100 bg-gray-50 shadow-sm p-1 rounded-lg">
+          <TabsList className="mb-6 border border-gray-100 bg-gray-50 p-1 rounded-lg overflow-x-auto flex">
             <TabsTrigger value="financial" className="rounded-md px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">Financial</TabsTrigger>
             <TabsTrigger value="case" className="rounded-md px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">Case Performance</TabsTrigger>
             <TabsTrigger value="staff" className="rounded-md px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">Staff Utilization</TabsTrigger>

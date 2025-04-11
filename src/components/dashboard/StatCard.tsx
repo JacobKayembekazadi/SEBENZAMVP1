@@ -23,8 +23,8 @@ export function StatCard({
   iconClassName
 }: StatCardProps) {
   return (
-    <div className={cn("bg-white rounded-lg p-5 shadow-sm border border-gray-100", className)}>
-      <div className="flex justify-between items-start mb-2">
+    <div className={cn("bg-white rounded-lg p-5 border border-gray-100", className)}>
+      <div className="flex justify-between items-start mb-3">
         <p className="text-sm font-medium text-gray-500">{title}</p>
         <div className={cn("flex items-center justify-center text-white rounded-full p-1.5", iconClassName || "bg-primary")}>
           {icon}
@@ -36,7 +36,7 @@ export function StatCard({
           {change && (
             <p className={cn(
               "text-xs font-medium flex items-center gap-1 mt-1",
-              change.positive ? "text-green-600" : "text-red-600"
+              change.positive ? "text-accent" : "text-red-500"
             )}>
               {change.positive ? "↑" : "↓"} {change.value}
             </p>

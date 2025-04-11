@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { 
-  BarChart3, 
+  LayoutDashboard, 
   Users, 
   FolderClosed, 
   Calendar, 
@@ -14,9 +14,11 @@ import {
   Clock, 
   Settings, 
   LogOut,
-  LayoutDashboard,
   Receipt,
-  PieChart,
+  Calculator,
+  CircleDollarSign,
+  BarChart3,
+  Briefcase,
   HelpCircle
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -108,9 +110,12 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         <SidebarItem icon={Calendar} label="Calendar" to="/calendar" collapsed={collapsed} />
         <SidebarItem icon={FileText} label="Documents" to="/documents" collapsed={collapsed} />
         <SidebarItem icon={Receipt} label="Invoices" to="/invoices" collapsed={collapsed} />
+        <SidebarItem icon={Calculator} label="Estimates" to="/estimates" collapsed={collapsed} />
         <SidebarItem icon={Clock} label="Time Tracking" to="/time" collapsed={collapsed} />
+        <SidebarItem icon={CircleDollarSign} label="Expenses" to="/expenses" collapsed={collapsed} />
+        <SidebarItem icon={Briefcase} label="Accounting" to="/accounting" collapsed={collapsed} />
         <SidebarItem icon={MessageSquare} label="Messages" to="/messages" badge={3} collapsed={collapsed} />
-        <SidebarItem icon={PieChart} label="Reports" to="/reports" collapsed={collapsed} />
+        <SidebarItem icon={BarChart3} label="Reports" to="/reports" collapsed={collapsed} />
       </div>
 
       <div className="mt-8 px-3">

@@ -9,6 +9,7 @@ import Clients from "./pages/Clients";
 import Cases from "./pages/Cases";
 import Calendar from "./pages/Calendar";
 import Documents from "./pages/Documents";
+import Messages from "./pages/Messages";
 import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 import { AIAssistant } from "./components/ai/AIAssistant";
@@ -27,7 +28,13 @@ const App = () => (
           <Route path="/cases" element={<Cases />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/help" element={<Help />} />
+          {/* Add routes for additional features */}
+          <Route path="/time" element={<NotFound />} />
+          <Route path="/invoices" element={<NotFound />} />
+          <Route path="/reports" element={<NotFound />} />
+          <Route path="/settings" element={<NotFound />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

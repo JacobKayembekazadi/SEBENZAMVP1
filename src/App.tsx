@@ -11,6 +11,7 @@ import Calendar from "./pages/Calendar";
 import Documents from "./pages/Documents";
 import Messages from "./pages/Messages";
 import Help from "./pages/Help";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import { AIAssistant } from "./components/ai/AIAssistant";
 
@@ -30,10 +31,13 @@ const App = () => (
           <Route path="/documents" element={<Documents />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/help" element={<Help />} />
+          <Route path="/reports" element={<Reports />} />
           {/* Add routes for additional features */}
           <Route path="/time" element={<NotFound />} />
           <Route path="/invoices" element={<NotFound />} />
-          <Route path="/reports" element={<NotFound />} />
+          <Route path="/estimates" element={<NotFound />} />
+          <Route path="/expenses" element={<NotFound />} />
+          <Route path="/accounting" element={<NotFound />} />
           <Route path="/settings" element={<NotFound />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

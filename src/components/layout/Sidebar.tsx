@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -29,15 +28,17 @@ type SidebarItemProps = {
   to: string;
   badge?: number;
   collapsed?: boolean;
+  dataTour?: string;
 };
 
-const SidebarItem = ({ icon: Icon, label, to, badge, collapsed }: SidebarItemProps) => {
+const SidebarItem = ({ icon: Icon, label, to, badge, collapsed, dataTour }: SidebarItemProps) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   const itemContent = (
     <Link
       to={to}
+      data-tour={dataTour}
       className={cn(
         "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
         "hover:bg-sidebar-hover hover:text-white",
@@ -114,23 +115,23 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       </div>
 
       <div className={cn("mt-2 px-3 flex-1 space-y-1", collapsed && "px-2")}>
-        <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" collapsed={collapsed} />
-        <SidebarItem icon={Users} label="Clients" to="/clients" collapsed={collapsed} />
+        <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" collapsed={collapsed} dataTour="dashboard" />
+        <SidebarItem icon={Users} label="Clients" to="/clients" collapsed={collapsed} dataTour="cases" />
         <SidebarItem icon={FolderClosed} label="Cases" to="/cases" collapsed={collapsed} />
         <SidebarItem icon={Calendar} label="Calendar" to="/calendar" collapsed={collapsed} />
-        <SidebarItem icon={FileText} label="Documents" to="/documents" collapsed={collapsed} />
-        <SidebarItem icon={Receipt} label="Invoices" to="/invoices" collapsed={collapsed} />
+        <SidebarItem icon={FileText} label="Documents" to="/documents" collapsed={collapsed} dataTour="documents" />
+        <SidebarItem icon={Receipt} label="Invoices" to="/invoices" collapsed={collapsed} dataTour="invoices" />
         <SidebarItem icon={Calculator} label="Estimates" to="/estimates" collapsed={collapsed} />
-        <SidebarItem icon={Clock} label="Time Tracking" to="/time" collapsed={collapsed} />
+        <SidebarItem icon={Clock} label="Time Tracking" to="/time" collapsed={collapsed} dataTour="time-tracking" />
         <SidebarItem icon={CircleDollarSign} label="Expenses" to="/expenses" collapsed={collapsed} />
-        <SidebarItem icon={Briefcase} label="Accounting" to="/accounting" collapsed={collapsed} />
+        <SidebarItem icon={Briefcase} label="Accounting" to="/accounting" collapsed={collapsed} dataTour="accounting" />
         <SidebarItem icon={MessageSquare} label="Messages" to="/messages" badge={3} collapsed={collapsed} />
-        <SidebarItem icon={BarChart3} label="Reports" to="/reports" collapsed={collapsed} />
+        <SidebarItem icon={BarChart3} label="Reports" to="/reports" collapsed={collapsed} dataTour="reports" />
       </div>
 
       <div className="mt-8 px-3">
         <div className="mt-2 space-y-1">
-          <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} />
+          <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} dataTour="settings" />
           <SidebarItem icon={HelpCircle} label="Help & Support" to="/help" collapsed={collapsed} />
         </div>
       </div>

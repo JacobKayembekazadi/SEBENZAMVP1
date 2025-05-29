@@ -1,4 +1,4 @@
-// API Service Layer for Advocate Ops Hub
+// API Service Layer for Sebenza System
 import { 
   Client, 
   Case, 

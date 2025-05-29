@@ -111,10 +111,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center pb-8">
           <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <div className="text-white text-2xl font-bold">AO</div>
+            <div className="text-white text-2xl font-bold">SS</div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            Welcome to Advocate Ops Hub
+            Welcome to Sebenza System
           </CardTitle>
           <CardDescription className="text-gray-600">
             Sign in to your law firm management system

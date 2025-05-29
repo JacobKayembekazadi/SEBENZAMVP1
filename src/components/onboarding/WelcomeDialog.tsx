@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { DialogTitle } from '@/components/ui/dialog';
 
 interface WelcomeDialogProps {
   isOpen: boolean;
@@ -36,8 +37,8 @@ export function WelcomeDialog({
           <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4">
             <div className="text-white text-3xl">👋</div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            {isFirstLogin ? `Welcome to Advocate Ops Hub, ${userName}!` : `Welcome back, ${userName}!`}
+          <CardTitle className="text-2xl font-bold text-center text-gray-900 mb-4">
+            {isFirstLogin ? `Welcome to Sebenza System, ${userName}!` : `Welcome back, ${userName}!`}
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
             {isFirstLogin 

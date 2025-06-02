@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark';
@@ -288,7 +290,10 @@ const Dashboard = () => {
                   </p>
                 </div>
               </div>
-              <Button className="bg-orange-600 hover:bg-orange-700">
+              <Button 
+                className="bg-orange-600 hover:bg-orange-700"
+                onClick={() => navigate('/invoices/create?source=dashboard&prefill=unbilled')}
+              >
                 <Receipt size={16} className="mr-2" />
                 Create Invoice
               </Button>
@@ -303,7 +308,7 @@ const Dashboard = () => {
             title="Add Your Client"
             description="Expand your client base and grow your practice with new client onboarding."
             buttonText="Add Client"
-            buttonAction={() => console.log('Add client')}
+            buttonAction={() => navigate('/clients/create?source=dashboard')}
             color="blue"
           />
 
@@ -312,7 +317,7 @@ const Dashboard = () => {
             title="Create Invoice & Get Paid"
             description="Generate professional invoices and streamline your payment collection process."
             buttonText="Create Invoice"
-            buttonAction={() => console.log('Create invoice')}
+            buttonAction={() => navigate('/invoices/create?source=dashboard')}
             color="green"
           />
 
@@ -321,7 +326,7 @@ const Dashboard = () => {
             title="Secure a New Deal"
             description="Create compelling estimates and quotes to win new business opportunities."
             buttonText="Create Quote"
-            buttonAction={() => console.log('Create quote')}
+            buttonAction={() => navigate('/estimates/create?source=dashboard')}
             color="purple"
           />
 
@@ -330,7 +335,7 @@ const Dashboard = () => {
             title="Track Your Spending"
             description="Monitor expenses and connect your bank account for automated expense tracking."
             buttonText="Add Expense"
-            buttonAction={() => console.log('Add expense')}
+            buttonAction={() => navigate('/expenses/create?source=dashboard')}
             color="red"
           />
 
@@ -339,7 +344,7 @@ const Dashboard = () => {
             title="Connect Bank Account"
             description="Sync your bank transactions for automatic expense categorization and reconciliation."
             buttonText="Connect Bank"
-            buttonAction={() => console.log('Connect bank')}
+            buttonAction={() => navigate('/settings/connect-bank?source=dashboard')}
             color="teal"
           />
 
@@ -348,7 +353,7 @@ const Dashboard = () => {
             title="Payment Gateway"
             description="Set up online payment processing to get paid faster with secure payment gateways."
             buttonText="Setup Payments"
-            buttonAction={() => console.log('Setup payments')}
+            buttonAction={() => navigate('/settings/payment-gateways?source=dashboard')}
             color="indigo"
           />
         </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Search, Bell, Menu, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { GlobalSearchBar } from "@/components/GlobalSearchBar";
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu, 
@@ -74,12 +74,8 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
             </div>
             
             <div className="flex items-center gap-2 lg:gap-4">
-              <div className="relative w-48 lg:w-64 hidden sm:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input 
-                  placeholder="Search..." 
-                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
+              <div className="w-full max-w-md hidden sm:block">
+                <GlobalSearchBar />
               </div>
               <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-600 relative">
                 <Bell size={20} />

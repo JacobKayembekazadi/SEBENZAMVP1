@@ -17,7 +17,8 @@ import {
   CircleDollarSign,
   BarChart3,
   Briefcase,
-  HelpCircle
+  HelpCircle,
+  Package
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -144,6 +145,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         {/* Settings Section */}
         <div className={cn("mt-8 pt-4 border-t border-gray-800", collapsed ? "px-2" : "px-4")}>
           <div className="space-y-1">
+            <SidebarItem icon={Package} label="My Package" to="/my-package" collapsed={collapsed} />
             <SidebarItem icon={Settings} label="Settings" to="/settings" collapsed={collapsed} dataTour="settings" />
             <SidebarItem icon={HelpCircle} label="Help & Support" to="/help" collapsed={collapsed} />
           </div>

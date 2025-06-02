@@ -19,6 +19,7 @@ import Estimates from "./pages/Estimates";
 import Expenses from "./pages/Expenses";
 import Accounting from "./pages/Accounting";
 import Settings from "./pages/Settings";
+import MyPackagePage from "./pages/MyPackagePage";
 import { EnhancedAIAssistant } from "./components/ai/EnhancedAIAssistant";
 import { AppProvider, useUser } from "./lib/store";
 import { LoginForm } from "./components/auth/LoginForm";
@@ -168,6 +169,7 @@ function AuthenticatedApp() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/clients" element={<Clients />} />
+          <Route path="/clients/create" element={<Clients />} />
           <Route path="/cases" element={<Cases />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/documents" element={<Documents />} />
@@ -176,10 +178,16 @@ function AuthenticatedApp() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/time" element={<TimeTracking />} />
           <Route path="/invoices" element={<Invoices />} />
+          <Route path="/invoices/create" element={<Invoices />} />
           <Route path="/estimates" element={<Estimates />} />
+          <Route path="/estimates/create" element={<Estimates />} />
           <Route path="/expenses" element={<Expenses />} />
+          <Route path="/expenses/create" element={<Expenses />} />
           <Route path="/accounting" element={<Accounting />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/connect-bank" element={<Settings />} />
+          <Route path="/settings/payment-gateways" element={<Settings />} />
+          <Route path="/my-package" element={<MyPackagePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

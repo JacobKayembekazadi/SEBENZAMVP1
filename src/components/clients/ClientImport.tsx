@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download, Eye } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download, Eye, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ImportedClient {
@@ -66,6 +66,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
   const [importResults, setImportResults] = useState<ImportResults | null>(null);
   const [fileName, setFileName] = useState('');
   const [previewData, setPreviewData] = useState<ImportedClient[]>([]);
+  const [fileLoaded, setFileLoaded] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -92,6 +93,10 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
           description: "CSV file must contain at least a header row and one data row.",
           variant: "destructive",
         });
+        setFileName('');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         return;
       }
 
@@ -109,7 +114,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
 
       setCsvHeaders(headers);
       setCsvData(data);
-      setPreviewData(data.slice(0, 5)); // Show first 5 rows for preview
+      setPreviewData(data.slice(0, 5));
       
       // Initialize field mappings with smart matching
       const mappings: FieldMapping[] = headers.map(csvHeader => {
@@ -143,10 +148,10 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
       });
 
       setFieldMappings(mappings);
-      setStep('mapping');
+      setFileLoaded(true);
       
       toast({
-        title: "File Uploaded Successfully",
+        title: "File Loaded Successfully",
         description: `Loaded ${data.length} records from ${file.name}`,
       });
     } catch (error) {
@@ -155,6 +160,29 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
         description: "Failed to parse the CSV file. Please check the format.",
         variant: "destructive",
       });
+      setFileName('');
+      setFileLoaded(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const clearFile = () => {
+    setFileName('');
+    setFileLoaded(false);
+    setCsvData([]);
+    setCsvHeaders([]);
+    setFieldMappings([]);
+    setPreviewData([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const proceedToMapping = () => {
+    if (fileLoaded) {
+      setStep('mapping');
     }
   };
 
@@ -303,6 +331,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
     setImportResults(null);
     setFileName('');
     setPreviewData([]);
+    setFileLoaded(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -373,6 +402,29 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                   >
                     Select CSV File
                   </Button>
+                  
+                  {fileName && (
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-4 py-2">
+                        <FileSpreadsheet size={20} className="text-gray-600" />
+                        <span className="text-sm font-medium text-gray-700">{fileName}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearFile}
+                          className="p-1 h-auto"
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {fileLoaded && csvData.length > 0 && (
+                    <p className="mt-2 text-sm text-green-600">
+                      {csvData.length} records ready to import
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -413,7 +465,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                         )}
                       </div>
                       <div className="w-8 text-center text-gray-400">→</div>
-                      <div className="flex-1">
+                      <div className="w-64">
                         <Select 
                           value={mapping.systemField} 
                           onValueChange={(value) => updateFieldMapping(mapping.csvField, value)}
@@ -559,6 +611,16 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
           </Button>
           
           <div className="flex gap-2">
+            {step === 'upload' && (
+              <Button 
+                onClick={proceedToMapping} 
+                disabled={!fileLoaded}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Next
+              </Button>
+            )}
+            
             {step === 'complete' && (
               <Button onClick={resetImport} variant="outline">
                 Import Another File

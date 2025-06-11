@@ -52,18 +52,8 @@ graph TB
         STATE[State Management]
     end
     
-    subgraph "API Gateway"
-        GATEWAY[API Gateway/Load Balancer]
-    end
-    
     subgraph "Application Tier"
-        AUTH[Auth Service]
-        USER[User Service]
-        CASE[Case Service]
-        DOC[Document Service]
-        TIME[Time Tracking Service]
-        BILL[Billing Service]
-        REPORT[Reporting Service]
+        BACKEND_API[Backend API Service]
     end
     
     subgraph "Data Tier"
@@ -85,36 +75,17 @@ graph TB
     MOBILE --> REACT
     REACT --> ROUTER
     REACT --> STATE
-    REACT --> GATEWAY
-    
-    GATEWAY --> AUTH
-    GATEWAY --> USER
-    GATEWAY --> CASE
-    GATEWAY --> DOC
-    GATEWAY --> TIME
-    GATEWAY --> BILL
-    GATEWAY --> REPORT
-    
-    AUTH --> MAIN_DB
-    USER --> MAIN_DB
-    CASE --> MAIN_DB
-    DOC --> DOC_STORE
-    TIME --> MAIN_DB
-    BILL --> MAIN_DB
-    REPORT --> MAIN_DB
-    
-    AUTH --> CACHE
-    USER --> CACHE
-    CASE --> CACHE
-    
-    DOC --> SEARCH
-    CASE --> SEARCH
-    
-    BILL --> EMAIL
-    BILL --> PAY
-    DOC --> ESIGN
-    BILL --> BANK
-    CASE --> AI
+    REACT --> BACKEND_API
+
+    BACKEND_API --> MAIN_DB
+    BACKEND_API --> DOC_STORE
+    BACKEND_API --> CACHE
+    BACKEND_API --> SEARCH
+    BACKEND_API --> EMAIL
+    BACKEND_API --> PAY
+    BACKEND_API --> ESIGN
+    BACKEND_API --> BANK
+    BACKEND_API --> AI
 ```
 
 ### Component Overview
@@ -122,8 +93,7 @@ graph TB
 | Component | Purpose | Technology |
 |-----------|---------|------------|
 | **Frontend Application** | User interface and user experience | React 18 + TypeScript |
-| **API Gateway** | Request routing, rate limiting, authentication | Express.js/Fastify |
-| **Microservices** | Business logic and data processing | Node.js/TypeScript |
+| **Backend API Service** | Business logic, data processing, API routing, and authentication | Node.js/TypeScript with Express.js |
 | **Database** | Primary data storage | PostgreSQL |
 | **Document Storage** | File storage and versioning | AWS S3/MinIO |
 | **Cache Layer** | Performance optimization | Redis |
@@ -623,21 +593,21 @@ flowchart TD
 | **Recharts** | 2.12.7 | Data visualization |
 | **Lucide React** | 0.462.0 | Icon library |
 
-### Backend Stack (Recommended)
+### Backend Stack (Current/Implied)
 
-| Technology | Purpose |
-|------------|---------|
-| **Node.js** | Runtime environment |
-| **Express.js/Fastify** | Web framework |
-| **TypeScript** | Type safety |
-| **PostgreSQL** | Primary database |
-| **Prisma/TypeORM** | ORM |
-| **Redis** | Caching and sessions |
-| **JWT** | Authentication tokens |
-| **Multer** | File upload handling |
-| **Nodemailer** | Email sending |
-| **Winston** | Logging |
-| **Jest** | Testing framework |
+| Technology | Purpose | Notes |
+|------------|---------|-------|
+| **Node.js** | Runtime environment | Confirmed from `package.json` |
+| **Express.js** | Web framework | Confirmed from `package.json` |
+| **TypeScript** | Type safety | Confirmed from `package.json` and `tsconfig.json` |
+| **PostgreSQL** | Primary database | Assumed/Intended for robust data storage |
+| **Prisma/TypeORM** | ORM | Assumed/Intended for database interaction |
+| **Redis** | Caching and sessions | Potential, for performance optimization |
+| **JWT** | Authentication tokens | Likely, for securing APIs |
+| **Multer** | File upload handling | Likely, if handling file uploads |
+| **Nodemailer** | Email sending | Potential, for notifications, etc. |
+| **Winston/Pino** | Logging | Potential, for robust logging |
+| **Jest/Vitest** | Testing framework | Likely, for unit/integration tests |
 
 ### Infrastructure Stack
 
@@ -977,13 +947,16 @@ flowchart TD
 
 ## Conclusion
 
-The Sebenza System architecture provides a robust, scalable, and secure platform for law firm management. The microservices architecture ensures flexibility and maintainability, while the comprehensive security measures protect sensitive legal data. The React-based frontend provides an intuitive user experience, and the well-defined API enables future integrations and mobile applications.
+The Sebenza System architecture provides a robust, scalable, and secure platform for law firm management. The current implementation utilizes a monolithic backend structure, which simplifies initial development and deployment while still allowing for a modular design. The comprehensive security measures protect sensitive legal data. The React-based frontend provides an intuitive user experience, and the well-defined API enables future integrations and mobile applications.
 
-Key architectural strengths:
-- **Scalability**: Microservices architecture supports horizontal scaling
-- **Security**: Multi-layered security approach with comprehensive audit trails
-- **Maintainability**: Clear separation of concerns and well-documented APIs
-- **Extensibility**: Plugin architecture and API-first design enable customization
-- **Performance**: Caching strategies and optimized database queries ensure responsiveness
+**Note on Architecture:** The current system is built with a monolithic backend. This approach was chosen for its simplicity in the current stage of development. The microservices architecture, as might have been described in earlier conceptual versions of this document, could be a future evolutionary goal if aspects like independent scaling of components or distinct team ownership per service become critical.
 
-This architecture serves as the foundation for a modern, efficient law firm management system that can adapt to evolving business needs while maintaining the highest standards of security and reliability.
+Key architectural strengths (current monolith):
+- **Simplified Development & Deployment**: Easier to develop, test, and deploy as a single unit, especially beneficial in early project stages.
+- **Centralized Codebase**: Can lead to easier code management and refactoring within the monolith if well-structured.
+- **Security**: Multi-layered security approach remains effective with comprehensive audit trails.
+- **Maintainability**: Clear separation of concerns can still be achieved within the monolith through careful modular design and adherence to software engineering best practices.
+- **Extensibility**: A well-defined API-first design enables customization and future integrations.
+- **Performance**: Caching strategies and optimized database queries ensure responsiveness. Direct inter-module communication within a monolith can sometimes offer lower latency than inter-service calls in a microservices setup.
+
+This architecture serves as the foundation for a modern, efficient law firm management system that can adapt to evolving business needs while maintaining the highest standards of security and reliability. The potential to evolve components or even transition to a microservices architecture in the future provides a path for long-term scalability, should the need arise.

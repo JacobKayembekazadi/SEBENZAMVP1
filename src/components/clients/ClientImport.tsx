@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download, Eye, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Papa from 'papaparse';
 
 interface ImportedClient {
   [key: string]: string;
@@ -55,6 +56,8 @@ const SYSTEM_FIELDS = [
 ];
 
 export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImportProps) {
+  console.log('ClientImport rendered with:', { open });
+  
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -67,12 +70,22 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
   const [fileName, setFileName] = useState('');
   const [previewData, setPreviewData] = useState<ImportedClient[]>([]);
   const [fileLoaded, setFileLoaded] = useState(false);
+  const [totalRows, setTotalRows] = useState(0);
+
+  console.log('Current step:', step, 'File loaded:', fileLoaded, 'CSV data length:', csvData.length);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('handleFileUpload triggered');
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, 'Size:', file.size);
 
     if (!file.name.toLowerCase().endsWith('.csv')) {
+      console.log('Invalid file type:', file.name);
       toast({
         title: "Invalid File Type",
         description: "Please upload a CSV file.",
@@ -81,13 +94,41 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
       return;
     }
 
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      console.log('File too large:', file.size);
+      toast({
+        title: "File Too Large",
+        description: "Please upload a CSV file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setFileName(file.name);
+    console.log('Starting CSV parsing...');
 
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      
-      if (lines.length < 2) {
+      // Use Papa Parse for proper CSV parsing
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header: string) => header.trim(),
+        transform: (value: string) => value.trim(),
+        complete: (results) => {
+          console.log('Papa Parse complete:', results);
+          if (results.errors.length > 0) {
+            console.warn('CSV parsing warnings:', results.errors);
+          }
+
+          const data = results.data as ImportedClient[];
+          const headers = results.meta.fields || [];
+
+          console.log('Parsed data:', data.length, 'rows');
+          console.log('Headers:', headers);
+
+          if (headers.length === 0 || data.length === 0) {
+            console.log('Invalid file: no headers or data');
         toast({
           title: "Invalid File",
           description: "CSV file must contain at least a header row and one data row.",
@@ -100,21 +141,17 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
         return;
       }
 
-      // Parse CSV (simple implementation - in production, use a proper CSV parser)
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const data = lines.slice(1).map((line, index) => {
-        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-        const row: ImportedClient = {};
-        headers.forEach((header, i) => {
-          row[header] = values[i] || '';
-        });
-        row._originalRowIndex = (index + 2).toString(); // +2 because we start from line 2 (after header)
-        return row;
-      });
+          // Add original row index for error tracking
+          const dataWithRowIndex = data.map((row, index) => ({
+            ...row,
+            _originalRowIndex: (index + 2).toString() // +2 because we start from line 2 (after header)
+          }));
 
+          console.log('Setting data and mappings...');
       setCsvHeaders(headers);
-      setCsvData(data);
-      setPreviewData(data.slice(0, 5));
+          setCsvData(dataWithRowIndex);
+          setTotalRows(dataWithRowIndex.length);
+          setPreviewData(dataWithRowIndex.slice(0, 5));
       
       // Initialize field mappings with smart matching
       const mappings: FieldMapping[] = headers.map(csvHeader => {
@@ -124,7 +161,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
         // Smart mapping based on common field names
         if (lowerHeader.includes('first') && lowerHeader.includes('name')) systemField = 'firstName';
         else if (lowerHeader.includes('last') && lowerHeader.includes('name')) systemField = 'lastName';
-        else if (lowerHeader.includes('email')) systemField = 'email';
+            else if (lowerHeader.includes('email') && !lowerHeader.includes('alt')) systemField = 'email';
         else if (lowerHeader.includes('phone') && !lowerHeader.includes('alt')) systemField = 'phone';
         else if (lowerHeader.includes('company')) systemField = 'companyName';
         else if (lowerHeader.includes('type')) systemField = 'type';
@@ -143,21 +180,38 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
           csvField: csvHeader,
           systemField,
           required: SYSTEM_FIELDS.find(f => f.key === systemField)?.required || false,
-          sample: data[0]?.[csvHeader] || ''
+              sample: dataWithRowIndex[0]?.[csvHeader] || ''
         };
       });
 
+          console.log('Field mappings created:', mappings);
       setFieldMappings(mappings);
       setFileLoaded(true);
       
       toast({
         title: "File Loaded Successfully",
-        description: `Loaded ${data.length} records from ${file.name}`,
+            description: `Loaded ${dataWithRowIndex.length} records from ${file.name}`,
+          });
+        },
+        error: (error) => {
+          console.error('Papa Parse error:', error);
+          toast({
+            title: "Error Reading File",
+            description: `Failed to parse the CSV file: ${error.message}`,
+            variant: "destructive",
+          });
+          setFileName('');
+          setFileLoaded(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
       });
     } catch (error) {
+      console.error('CSV parsing catch error:', error);
       toast({
         title: "Error Reading File",
-        description: "Failed to parse the CSV file. Please check the format.",
+        description: "Failed to read the CSV file. Please check the format.",
         variant: "destructive",
       });
       setFileName('');
@@ -175,34 +229,115 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
     setCsvHeaders([]);
     setFieldMappings([]);
     setPreviewData([]);
+    setTotalRows(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const proceedToMapping = () => {
-    if (fileLoaded) {
-      setStep('mapping');
+    console.log('proceedToMapping called', { 
+      fileLoaded, 
+      csvDataLength: csvData.length, 
+      csvHeaders: csvHeaders.length,
+      fieldMappings: fieldMappings.length 
+    });
+    
+    if (!fileLoaded) {
+      console.log('Cannot proceed to mapping - file not loaded');
+      toast({
+        title: "No File Loaded",
+        description: "Please upload a CSV file first.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    if (csvData.length === 0) {
+      console.log('Cannot proceed to mapping - no CSV data');
+      toast({
+        title: "No Data Found",
+        description: "The CSV file appears to be empty or invalid.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (csvHeaders.length === 0) {
+      console.log('Cannot proceed to mapping - no CSV headers');
+      toast({
+        title: "No Headers Found",
+        description: "The CSV file must have headers in the first row.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (fieldMappings.length === 0) {
+      console.log('No field mappings found, creating them...');
+      // Recreate field mappings if they're missing
+      const mappings: FieldMapping[] = csvHeaders.map(csvHeader => {
+        const lowerHeader = csvHeader.toLowerCase();
+        let systemField = '';
+        
+        // Smart mapping based on common field names
+        if (lowerHeader.includes('first') && lowerHeader.includes('name')) systemField = 'firstName';
+        else if (lowerHeader.includes('last') && lowerHeader.includes('name')) systemField = 'lastName';
+        else if (lowerHeader.includes('email') && !lowerHeader.includes('alt')) systemField = 'email';
+        else if (lowerHeader.includes('phone') && !lowerHeader.includes('alt')) systemField = 'phone';
+        else if (lowerHeader.includes('company')) systemField = 'companyName';
+        else if (lowerHeader.includes('type')) systemField = 'type';
+        else if (lowerHeader.includes('street') || (lowerHeader.includes('address') && lowerHeader.includes('1'))) systemField = 'billingStreet';
+        else if (lowerHeader.includes('city')) systemField = 'billingCity';
+        else if (lowerHeader.includes('state')) systemField = 'billingState';
+        else if (lowerHeader.includes('zip') || lowerHeader.includes('postal')) systemField = 'billingZip';
+        else if (lowerHeader.includes('country')) systemField = 'billingCountry';
+        else if (lowerHeader.includes('alt') && lowerHeader.includes('phone')) systemField = 'alternatePhone';
+        else if (lowerHeader.includes('note')) systemField = 'notes';
+        else if (lowerHeader.includes('referral') || lowerHeader.includes('source')) systemField = 'referralSource';
+        else if (lowerHeader.includes('priority')) systemField = 'priority';
+        else if (lowerHeader.includes('tag')) systemField = 'tags';
+
+        return {
+          csvField: csvHeader,
+          systemField,
+          required: SYSTEM_FIELDS.find(f => f.key === systemField)?.required || false,
+          sample: csvData[0]?.[csvHeader] || ''
+        };
+      });
+      
+      setFieldMappings(mappings);
+    }
+    
+    console.log('Proceeding to mapping step');
+    setStep('mapping');
   };
 
   const updateFieldMapping = (csvField: string, systemField: string) => {
+    console.log('Updating field mapping:', csvField, '->', systemField);
+    // Convert 'none' back to empty string for internal storage
+    const actualSystemField = systemField === 'none' ? '' : systemField;
     setFieldMappings(prev => 
       prev.map(mapping => 
         mapping.csvField === csvField 
-          ? { ...mapping, systemField }
+          ? { ...mapping, systemField: actualSystemField, required: SYSTEM_FIELDS.find(f => f.key === actualSystemField)?.required || false }
           : mapping
       )
     );
   };
 
   const validateMappings = (): boolean => {
+    console.log('Validating mappings...');
     const requiredFields = SYSTEM_FIELDS.filter(f => f.required);
     const mappedRequiredFields = fieldMappings
       .filter(m => m.systemField && requiredFields.some(rf => rf.key === m.systemField))
       .map(m => m.systemField);
 
     const missingRequired = requiredFields.filter(rf => !mappedRequiredFields.includes(rf.key));
+    
+    console.log('Required fields:', requiredFields.map(f => f.key));
+    console.log('Mapped required fields:', mappedRequiredFields);
+    console.log('Missing required fields:', missingRequired.map(f => f.key));
     
     if (missingRequired.length > 0) {
       toast({
@@ -213,15 +348,81 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
       return false;
     }
 
+    // Check for duplicate mappings
+    const duplicateMappings = fieldMappings
+      .filter(m => m.systemField)
+      .reduce((acc, mapping) => {
+        if (acc[mapping.systemField]) {
+          acc[mapping.systemField].push(mapping.csvField);
+        } else {
+          acc[mapping.systemField] = [mapping.csvField];
+        }
+        return acc;
+      }, {} as Record<string, string[]>);
+
+    const duplicates = Object.entries(duplicateMappings).filter(([_, fields]) => fields.length > 1);
+    
+    console.log('Duplicate mappings:', duplicates);
+    
+    if (duplicates.length > 0) {
+      toast({
+        title: "Duplicate Field Mappings",
+        description: `Multiple CSV fields cannot map to the same system field: ${duplicates.map(([field, csvFields]) => `${field} (${csvFields.join(', ')})`).join('; ')}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    console.log('Mappings validation passed');
     return true;
   };
 
   const proceedToPreview = () => {
+    console.log('proceedToPreview called');
     if (!validateMappings()) return;
+    console.log('Proceeding to preview step');
     setStep('preview');
   };
 
+  const validateRowData = (mappedData: any, originalRowIndex: number): string[] => {
+    const errors: string[] = [];
+
+    // Validate email format
+    if (mappedData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mappedData.email)) {
+      errors.push('Invalid email format');
+    }
+
+    // Validate phone format (basic validation)
+    if (mappedData.phone && !/^[\+]?[\d\s\-\(\)]{10,}$/.test(mappedData.phone.replace(/\s/g, ''))) {
+      errors.push('Invalid phone number format');
+    }
+
+    // Validate client type
+    if (mappedData.type && !['individual', 'business'].includes(mappedData.type.toLowerCase())) {
+      mappedData.type = 'individual'; // Default fallback
+    }
+
+    // Validate priority
+    if (mappedData.priority && !['low', 'medium', 'high'].includes(mappedData.priority.toLowerCase())) {
+      mappedData.priority = 'medium'; // Default fallback
+    }
+
+    return errors;
+  };
+
   const startImport = async () => {
+    console.log('startImport called', { csvDataLength: csvData.length });
+    if (!csvData.length) {
+      console.log('No data to import');
+      toast({
+        title: "No Data to Import",
+        description: "Please upload and map CSV data first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Starting import process...');
     setStep('importing');
     setImportProgress(0);
 
@@ -232,16 +433,24 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
     };
 
     try {
-      // Simulate import process
-      for (let i = 0; i < csvData.length; i++) {
-        const row = csvData[i];
+      // Process in smaller batches for better UX
+      const batchSize = 10;
+      const totalBatches = Math.ceil(csvData.length / batchSize);
+      console.log(`Processing ${csvData.length} records in ${totalBatches} batches of ${batchSize}`);
+
+      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        const batchStart = batchIndex * batchSize;
+        const batchEnd = Math.min(batchStart + batchSize, csvData.length);
+        const batch = csvData.slice(batchStart, batchEnd);
+
+        console.log(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} records)`);
+
+        for (let i = 0; i < batch.length; i++) {
+          const row = batch[i];
         const originalRowIndex = parseInt(row._originalRowIndex || '0');
         
-        // Simulate processing delay
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
         try {
-          // Validate required fields
+            // Map data according to field mappings
           const mappedData: any = {};
           for (const mapping of fieldMappings) {
             if (mapping.systemField) {
@@ -249,21 +458,14 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
               if (mapping.required && !value?.trim()) {
                 throw new Error(`Missing required field: ${SYSTEM_FIELDS.find(f => f.key === mapping.systemField)?.label}`);
               }
-              mappedData[mapping.systemField] = value?.trim();
+                mappedData[mapping.systemField] = value?.trim() || '';
+              }
             }
-          }
 
-          // Additional validation
-          if (mappedData.email && !/\S+@\S+\.\S+/.test(mappedData.email)) {
-            throw new Error('Invalid email format');
-          }
-
-          if (mappedData.type && !['individual', 'business'].includes(mappedData.type.toLowerCase())) {
-            mappedData.type = 'individual'; // Default fallback
-          }
-
-          if (mappedData.priority && !['low', 'medium', 'high'].includes(mappedData.priority.toLowerCase())) {
-            mappedData.priority = 'medium'; // Default fallback
+            // Validate row data
+            const validationErrors = validateRowData(mappedData, originalRowIndex);
+            if (validationErrors.length > 0) {
+              throw new Error(validationErrors.join(', '));
           }
 
           // Process tags
@@ -273,9 +475,11 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
 
           // Here you would make the actual API call to create the client
           // await createClient(mappedData);
+            console.log(`Successfully processed row ${originalRowIndex}:`, mappedData);
           
           results.successful++;
         } catch (error) {
+            console.error(`Error processing row ${originalRowIndex}:`, error);
           results.failed++;
           results.errors.push({
             row: originalRowIndex,
@@ -283,9 +487,18 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
           });
         }
 
-        setImportProgress(((i + 1) / csvData.length) * 100);
+          // Update progress
+          const currentIndex = batchStart + i + 1;
+          setImportProgress((currentIndex / csvData.length) * 100);
+        }
+
+        // Small delay between batches to prevent UI blocking
+        if (batchIndex < totalBatches - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
 
+      console.log('Import complete. Results:', results);
       setImportResults(results);
       setStep('complete');
       
@@ -296,24 +509,29 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
 
       onImportComplete?.(results);
     } catch (error) {
+      console.error('Import process error:', error);
       toast({
         title: "Import Failed",
-        description: "An error occurred during the import process.",
+        description: "An unexpected error occurred during the import process.",
         variant: "destructive",
       });
+      console.error('Import error:', error);
     }
   };
 
   const downloadSampleCSV = () => {
-    const headers = SYSTEM_FIELDS.map(f => f.label).join(',');
-    const sampleRow = [
-      'John', 'Doe', 'john.doe@example.com', '555-0123', 'Acme Corp', 'business',
-      '123 Main St', 'Anytown', 'CA', '90210', 'United States',
-      '555-0124', 'Sample notes', 'Referral', 'high', 'corporate,new-client'
-    ].join(',');
+    const headers = SYSTEM_FIELDS.map(f => f.label);
+    const sampleData = [
+      ['John', 'Doe', 'john.doe@example.com', '(555) 123-4567', 'Acme Corp', 'business', '123 Main St', 'Anytown', 'CA', '90210', 'United States', '(555) 123-4568', 'Sample notes', 'Website', 'high', 'corporate,new-client'],
+      ['Jane', 'Smith', 'jane.smith@example.com', '(555) 987-6543', '', 'individual', '456 Oak Ave', 'Springfield', 'NY', '12345', 'United States', '', 'Individual client', 'Referral', 'medium', 'individual,personal']
+    ];
     
-    const csv = `${headers}\n${sampleRow}`;
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const csvContent = Papa.unparse({
+      fields: headers,
+      data: sampleData
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -323,6 +541,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
   };
 
   const resetImport = () => {
+    console.log('resetImport called');
     setStep('upload');
     setCsvData([]);
     setCsvHeaders([]);
@@ -332,10 +551,23 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
     setFileName('');
     setPreviewData([]);
     setFileLoaded(false);
+    setTotalRows(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    console.log('Import state reset complete');
   };
+
+  // Add effect to track when dialog opens/closes
+  React.useEffect(() => {
+    if (open) {
+      console.log('Import dialog opened');
+      // Reset state when dialog opens
+      resetImport();
+    } else {
+      console.log('Import dialog closed');
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -373,7 +605,12 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
         </div>
 
         {/* Step Content */}
-        {step === 'upload' && (
+        <div className="min-h-[400px]">
+          {(() => {
+            try {
+              switch (step) {
+                case 'upload':
+                  return (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -402,6 +639,38 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                   >
                     Select CSV File
                   </Button>
+                            
+                            {/* Debug button for testing */}
+                            <Button
+                              onClick={() => {
+                                console.log('Debug button clicked');
+                                console.log('Current state:', { step, fileLoaded, csvData: csvData.length, fileName });
+                                // Simulate file loaded for testing
+                                if (!fileLoaded) {
+                                  console.log('Simulating file load for testing...');
+                                  setCsvData([{ firstName: 'Test', lastName: 'User', email: 'test@example.com', phone: '555-0123', _originalRowIndex: '2' }]);
+                                  setCsvHeaders(['firstName', 'lastName', 'email', 'phone']);
+                                  setFieldMappings([
+                                    { csvField: 'firstName', systemField: 'firstName', required: true, sample: 'Test' },
+                                    { csvField: 'lastName', systemField: 'lastName', required: true, sample: 'User' },
+                                    { csvField: 'email', systemField: 'email', required: true, sample: 'test@example.com' },
+                                    { csvField: 'phone', systemField: 'phone', required: true, sample: '555-0123' }
+                                  ]);
+                                  setFileName('test.csv');
+                                  setFileLoaded(true);
+                                  setTotalRows(1);
+                                  setPreviewData([{ firstName: 'Test', lastName: 'User', email: 'test@example.com', phone: '555-0123', _originalRowIndex: '2' }]);
+                                  toast({
+                                    title: "Test Data Loaded",
+                                    description: "Loaded test data for debugging",
+                                  });
+                                }
+                              }}
+                              variant="outline"
+                              className="ml-4"
+                            >
+                              Debug: Load Test Data
+                            </Button>
                   
                   {fileName && (
                     <div className="mt-4 flex items-center justify-center gap-2">
@@ -443,9 +712,10 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
               </CardContent>
             </Card>
           </div>
-        )}
+                  );
 
-        {step === 'mapping' && (
+                case 'mapping':
+                  return (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -455,11 +725,12 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                 </p>
               </CardHeader>
               <CardContent>
+                          {fieldMappings && fieldMappings.length > 0 ? (
                 <div className="space-y-4">
                   {fieldMappings.map((mapping, index) => (
                     <div key={index} className="flex items-center gap-4 p-3 border rounded-lg">
                       <div className="flex-1">
-                        <Label className="text-sm font-medium">{mapping.csvField}</Label>
+                                    <Label className="text-sm font-medium">{mapping.csvField || 'Unknown Field'}</Label>
                         {mapping.sample && (
                           <p className="text-xs text-gray-500 mt-1">Sample: "{mapping.sample}"</p>
                         )}
@@ -467,14 +738,14 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                       <div className="w-8 text-center text-gray-400">→</div>
                       <div className="w-64">
                         <Select 
-                          value={mapping.systemField} 
-                          onValueChange={(value) => updateFieldMapping(mapping.csvField, value)}
+                                      value={mapping.systemField || 'none'} 
+                                      onValueChange={(value) => updateFieldMapping(mapping.csvField, value === 'none' ? '' : value)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select field..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Don't import this field</SelectItem>
+                                        <SelectItem value="none">Don't import this field</SelectItem>
                             {SYSTEM_FIELDS.map(field => (
                               <SelectItem key={field.key} value={field.key}>
                                 {field.label} {field.required && '*'}
@@ -486,12 +757,25 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                     </div>
                   ))}
                 </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <p className="text-gray-500">No CSV fields found to map. Please go back and upload a valid CSV file.</p>
+                              <Button 
+                                onClick={() => setStep('upload')} 
+                                variant="outline"
+                                className="mt-4"
+                              >
+                                Back to Upload
+                              </Button>
+                            </div>
+                          )}
               </CardContent>
             </Card>
           </div>
-        )}
+                  );
 
-        {step === 'preview' && (
+                case 'preview':
+                  return (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -540,27 +824,29 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
               </CardContent>
             </Card>
           </div>
-        )}
+                  );
 
-        {step === 'importing' && (
+                case 'importing':
+                  return (
           <div className="space-y-6">
             <Card>
               <CardContent className="p-8 text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <h3 className="text-lg font-medium text-gray-700 mb-2">Importing Clients...</h3>
                 <p className="text-gray-500 mb-6">
-                  Please wait while we import your client data. This may take a few moments.
+                            Please wait while we import your client data. Processing {totalRows} records...
                 </p>
                 <Progress value={importProgress} className="w-full" />
                 <p className="text-sm text-gray-500 mt-2">
-                  {Math.round(importProgress)}% complete
+                            {Math.round(importProgress)}% complete ({Math.round((importProgress / 100) * totalRows)} of {totalRows} records)
                 </p>
               </CardContent>
             </Card>
           </div>
-        )}
+                  );
 
-        {step === 'complete' && importResults && (
+                case 'complete':
+                  return importResults ? (
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -585,7 +871,7 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-700">Import Errors:</h4>
                     <div className="max-h-48 overflow-y-auto space-y-2">
-                      {importResults.errors.map((error, index) => (
+                                {importResults.errors.slice(0, 10).map((error, index) => (
                         <Alert key={index} variant="destructive">
                           <AlertCircle size={16} />
                           <AlertDescription>
@@ -593,49 +879,118 @@ export function ClientImport({ open, onOpenChange, onImportComplete }: ClientImp
                           </AlertDescription>
                         </Alert>
                       ))}
+                                {importResults.errors.length > 10 && (
+                                  <p className="text-sm text-gray-500 text-center">
+                                    ... and {importResults.errors.length - 10} more errors
+                                  </p>
+                                )}
                     </div>
                   </div>
                 )}
+
+                          {importResults.successful > 0 && (
+                            <div className="p-4 bg-blue-50 rounded-lg">
+                              <h4 className="font-medium text-blue-800 mb-2">What's Next?</h4>
+                              <ul className="text-sm text-blue-700 space-y-1">
+                                <li>• Review the imported clients in your client list</li>
+                                <li>• Update any missing information</li>
+                                <li>• Create cases for new clients if needed</li>
+                              </ul>
+                            </div>
+                          )}
               </CardContent>
             </Card>
           </div>
-        )}
+                  ) : null;
+
+                default:
+                  return (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">Unknown step: {step}</p>
+                      <Button onClick={() => setStep('upload')} variant="outline" className="mt-4">
+                        Back to Upload
+                      </Button>
+                    </div>
+                  );
+              }
+            } catch (error) {
+              console.error('Error rendering step:', step, error);
+              return (
+                <div className="text-center py-8">
+                  <Alert variant="destructive">
+                    <AlertCircle size={16} />
+                    <AlertDescription>
+                      An error occurred while rendering this step. Please try refreshing or going back to upload.
+                    </AlertDescription>
+                  </Alert>
+                  <Button onClick={() => setStep('upload')} variant="outline" className="mt-4">
+                    Back to Upload
+                  </Button>
+                </div>
+              );
+            }
+          })()}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex justify-between pt-6 border-t">
+          <div className="flex gap-2">
+            {step !== 'upload' && step !== 'importing' && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (step === 'mapping') setStep('upload');
+                  else if (step === 'preview') setStep('mapping');
+                  else if (step === 'complete') setStep('preview');
+                }}
+              >
+                Back
+              </Button>
+            )}
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
             {step === 'complete' ? 'Close' : 'Cancel'}
           </Button>
+          </div>
           
           <div className="flex gap-2">
             {step === 'upload' && (
               <Button 
                 onClick={proceedToMapping} 
-                disabled={!fileLoaded}
+                disabled={!fileLoaded || csvData.length === 0}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Next
-              </Button>
-            )}
-            
-            {step === 'complete' && (
-              <Button onClick={resetImport} variant="outline">
-                Import Another File
+                Next: Map Fields
               </Button>
             )}
             
             {step === 'mapping' && (
-              <Button onClick={proceedToPreview}>
-                Continue to Preview
+              <Button 
+                onClick={proceedToPreview}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Next: Preview Data
               </Button>
             )}
             
             {step === 'preview' && (
-              <Button onClick={startImport} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button 
+                onClick={startImport} 
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
                 Start Import ({csvData.length} records)
+              </Button>
+            )}
+
+            {step === 'complete' && (
+              <Button 
+                onClick={resetImport} 
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                Import Another File
               </Button>
             )}
           </div>

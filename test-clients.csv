@@ -1,0 +1,7 @@
+First Name,Last Name,Email Address,Phone Number,Company Name,Client Type,Billing Street Address,Billing City,Billing State,Billing ZIP Code,Billing Country,Alternate Phone,Notes,Referral Source,Priority,Tags
+John,Doe,john.doe@example.com,(555) 123-4567,Acme Corporation,business,123 Main St,Anytown,CA,90210,United States,(555) 123-4568,Sample business client,Website,high,"corporate,new-client"
+Jane,Smith,jane.smith@example.com,(555) 987-6543,,individual,456 Oak Ave,Springfield,NY,12345,United States,,Individual client notes,Referral,medium,"individual,personal"
+Robert,"Johnson Jr",robert.johnson@techstartup.com,(555) 456-7890,Tech Startup Inc.,business,"789 Innovation Blvd, Suite 100",Silicon Valley,CA,94305,United States,(555) 456-7891,Tech startup with special characters in name,Google Ads,high,"tech,startup,corporate"
+Emily,Davis,emily.davis@email.com,(555) 321-0987,,individual,321 Pine St,Portland,OR,97201,United States,,Simple individual client,Word of Mouth,low,"personal"
+Michael,Wilson,invalid-email,555-invalid-phone,Wilson & Associates,business,555 Legal Ave,Legal City,TX,75001,United States,(555) 555-5556,Client with validation errors,Legal Directory,medium,"legal,errors"
+Sarah,Brown,sarah.brown@company.com,(555) 111-2222,Brown Consulting LLC,business,,Remote,CA,,United States,,Remote consulting business,LinkedIn,medium,"consulting,remote" 

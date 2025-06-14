@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
+import ClientDetails from "./pages/ClientDetails";
 import Cases from "./pages/Cases";
 import Calendar from "./pages/Calendar";
 import Documents from "./pages/Documents";
@@ -162,14 +163,12 @@ function AuthenticatedApp() {
 
   return (
     <>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/clients/create" element={<Clients />} />
+          <Route path="/clients/:id" element={<ClientDetails />} />
           <Route path="/cases" element={<Cases />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/documents" element={<Documents />} />
@@ -191,8 +190,7 @@ function AuthenticatedApp() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-        <EnhancedAIAssistant />
-    </TooltipProvider>
+      <EnhancedAIAssistant />
 
       {/* Onboarding Components */}
       <WelcomeDialog
@@ -256,15 +254,19 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        {isAuthenticated ? (
-          <AuthenticatedApp />
-        ) : (
-          <LoginForm onSuccess={handleLoginSuccess} />
-        )}
-      </AppProvider>
-  </QueryClientProvider>
-);
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppProvider>
+          {isAuthenticated ? (
+            <AuthenticatedApp />
+          ) : (
+            <LoginForm onSuccess={handleLoginSuccess} />
+          )}
+        </AppProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 };
 
 export default App;

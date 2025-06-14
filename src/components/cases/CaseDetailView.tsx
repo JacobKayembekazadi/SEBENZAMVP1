@@ -40,6 +40,7 @@ import { TaskDialog } from './TaskDialog';
 import { MilestoneDialog } from './MilestoneDialog';
 import { GanttChart } from './GanttChart';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface CaseDetailViewProps {
   case: any;
@@ -57,6 +58,12 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
   const [editingMilestone, setEditingMilestone] = useState<any>(null);
   const [newNote, setNewNote] = useState({ title: '', content: '', type: 'general' });
   const [newComment, setNewComment] = useState('');
+  const [showEditCaseDialog, setShowEditCaseDialog] = useState(false);
+  const [showFileUploadDialog, setShowFileUploadDialog] = useState(false);
+  const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showTimeEntryDialog, setShowTimeEntryDialog] = useState(false);
+  const [editingTimeEntry, setEditingTimeEntry] = useState<any>(null);
+  const [activeClocks, setActiveClocks] = useState<any[]>([]);
 
   // Mock data for demonstration
   const mockTasks = [
@@ -170,6 +177,25 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
     }
   ];
 
+  const mockClocks = [
+    {
+      id: '1',
+      name: 'Research Clock',
+      startTime: '2024-01-15T09:00:00',
+      duration: 7200, // 2 hours in seconds
+      isRunning: false,
+      description: 'Legal research for case precedents'
+    },
+    {
+      id: '2',
+      name: 'Document Review Clock',
+      startTime: '2024-01-15T14:00:00',
+      duration: 3600, // 1 hour in seconds
+      isRunning: true,
+      description: 'Reviewing contract documents'
+    }
+  ];
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -191,6 +217,13 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const startTimer = () => {
@@ -215,6 +248,85 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
     }
     setIsTimerRunning(false);
     setCurrentTimeEntry(null);
+  };
+
+  const handleEditCase = () => {
+    toast({
+      title: "Edit Case",
+      description: "Opening case edit dialog...",
+    });
+    setShowEditCaseDialog(true);
+    // In a real app, this would open an edit dialog
+  };
+
+  const handleFileUpload = () => {
+    toast({
+      title: "Upload File",
+      description: "Opening file upload dialog...",
+    });
+    setShowFileUploadDialog(true);
+    // In a real app, this would open a file upload dialog
+  };
+
+  const handleCreateInvoice = () => {
+    toast({
+      title: "Create Invoice",
+      description: "Opening invoice creation dialog...",
+    });
+    setShowInvoiceDialog(true);
+    // In a real app, this would open an invoice creation dialog
+  };
+
+  const handleAddTimeEntry = () => {
+    setEditingTimeEntry(null);
+    setShowTimeEntryDialog(true);
+    toast({
+      title: "Add Time Entry",
+      description: "Opening time entry dialog...",
+    });
+  };
+
+  const handleEditTimeEntry = (entry: any) => {
+    setEditingTimeEntry(entry);
+    setShowTimeEntryDialog(true);
+    toast({
+      title: "Edit Time Entry",
+      description: `Editing time entry: ${entry.description}`,
+    });
+  };
+
+  const handleDeleteTimeEntry = (entry: any) => {
+    toast({
+      title: "Delete Time Entry",
+      description: `Deleted time entry: ${entry.description}`,
+      variant: "destructive",
+    });
+  };
+
+  const handleStartClock = (clockName: string) => {
+    const newClock = {
+      id: Date.now().toString(),
+      name: clockName,
+      startTime: new Date().toISOString(),
+      duration: 0,
+      isRunning: true,
+      description: ''
+    };
+    setActiveClocks([...activeClocks, newClock]);
+    toast({
+      title: "Clock Started",
+      description: `Started ${clockName}`,
+    });
+  };
+
+  const handleStopClock = (clockId: string) => {
+    setActiveClocks(activeClocks.map(clock => 
+      clock.id === clockId ? { ...clock, isRunning: false } : clock
+    ));
+    toast({
+      title: "Clock Stopped",
+      description: "Time has been logged.",
+    });
   };
 
   const handleCreateTask = () => {
@@ -322,7 +434,7 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
               Start Timer
             </Button>
           )}
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleEditCase}>
             <Edit size={16} className="mr-2" />
             Edit Case
           </Button>
@@ -625,7 +737,7 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
         <TabsContent value="files" className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Files</h3>
-            <Button>
+            <Button onClick={handleFileUpload}>
               <Upload size={16} className="mr-2" />
               Upload New File
             </Button>
@@ -851,7 +963,7 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
         <TabsContent value="timesheet" className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Time Sheet</h3>
-            <Button>
+            <Button onClick={handleAddTimeEntry}>
               <Plus size={16} className="mr-2" />
               Add Time Entry
             </Button>
@@ -888,10 +1000,18 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditTimeEntry(entry)}
+                          >
                             <Edit size={14} />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteTimeEntry(entry)}
+                          >
                             <Trash2 size={14} />
                           </Button>
                         </div>
@@ -929,7 +1049,7 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold mb-4">Case Invoices</h3>
               <p className="text-gray-500">Integration with invoice system - view and manage invoices related to this case.</p>
-              <Button className="mt-4">
+              <Button className="mt-4" onClick={handleCreateInvoice}>
                 <Receipt size={16} className="mr-2" />
                 Create Invoice
               </Button>
@@ -938,12 +1058,83 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
         </TabsContent>
 
         <TabsContent value="clocks">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Clock Management</h3>
-              <p className="text-gray-500">Manage different time clocks for various case activities.</p>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Clock Management</h3>
+              <div className="flex gap-2">
+                <Button onClick={() => handleStartClock('Research Clock')} size="sm">
+                  <Plus size={16} className="mr-2" />
+                  Research Clock
+                </Button>
+                <Button onClick={() => handleStartClock('Document Review Clock')} size="sm">
+                  <Plus size={16} className="mr-2" />
+                  Document Clock
+                </Button>
+                <Button onClick={() => handleStartClock('Meeting Clock')} size="sm">
+                  <Plus size={16} className="mr-2" />
+                  Meeting Clock
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid gap-4">
+              {[...mockClocks, ...activeClocks].map((clock) => (
+                <Card key={clock.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} className={clock.isRunning ? "text-green-500" : "text-gray-500"} />
+                          <h4 className="font-medium">{clock.name}</h4>
+                          {clock.isRunning && (
+                            <Badge className="bg-green-100 text-green-800">Running</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600">{clock.description || 'No description'}</p>
+                        <div className="flex gap-4 text-sm text-gray-500">
+                          <span>Started: {formatDate(clock.startTime)}</span>
+                          <span>Duration: {formatDuration(clock.duration)}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {clock.isRunning ? (
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleStopClock(clock.id)}
+                          >
+                            <Pause size={14} className="mr-1" />
+                            Stop
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleStartClock(clock.name)}
+                          >
+                            <Play size={14} className="mr-1" />
+                            Resume
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm">
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {[...mockClocks, ...activeClocks].length === 0 && (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Clock size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">No active clocks. Start a new clock to track time for specific activities.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -964,6 +1155,265 @@ export function CaseDetailView({ case: caseData, onUpdate }: CaseDetailViewProps
         caseId={caseData.id}
         availableTasks={mockTasks}
       />
+
+      {/* Edit Case Dialog */}
+      <Dialog open={showEditCaseDialog} onOpenChange={setShowEditCaseDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Case</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Case Title</Label>
+                <Input defaultValue={caseData.title} placeholder="Enter case title..." />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select defaultValue={caseData.status}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="on-hold">On Hold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Priority</Label>
+                <Select defaultValue={caseData.priority}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Budget</Label>
+                <Input type="number" defaultValue={caseData.budget} placeholder="Enter budget..." />
+              </div>
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea defaultValue={caseData.description} placeholder="Enter case description..." rows={4} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowEditCaseDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Case Updated",
+                  description: "Case details have been updated successfully.",
+                });
+                setShowEditCaseDialog(false);
+              }}>
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* File Upload Dialog */}
+      <Dialog open={showFileUploadDialog} onOpenChange={setShowFileUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload File</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <Upload size={48} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Choose files to upload</h3>
+              <p className="text-gray-500 mb-4">
+                Drag and drop files here, or click to browse
+              </p>
+              <Input type="file" multiple className="hidden" id="file-upload" />
+              <Button asChild>
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  Select Files
+                </label>
+              </Button>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowFileUploadDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Files Uploaded",
+                  description: "Files have been uploaded successfully.",
+                });
+                setShowFileUploadDialog(false);
+              }}>
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Creation Dialog */}
+      <Dialog open={showInvoiceDialog} onOpenChange={setShowInvoiceDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create Invoice</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Invoice Number</Label>
+                <Input defaultValue={`INV-${Date.now()}`} placeholder="Invoice number..." />
+              </div>
+              <div>
+                <Label>Invoice Date</Label>
+                <Input type="date" defaultValue={new Date().toISOString().split('T')[0]} />
+              </div>
+              <div>
+                <Label>Due Date</Label>
+                <Input type="date" defaultValue={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} />
+              </div>
+              <div>
+                <Label>Amount</Label>
+                <Input type="number" placeholder="Enter amount..." />
+              </div>
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Textarea placeholder="Enter invoice description..." rows={3} />
+            </div>
+            <div>
+              <Label>Line Items</Label>
+              <div className="space-y-2 mt-2">
+                <div className="flex gap-2">
+                  <Input placeholder="Description" className="flex-1" />
+                  <Input placeholder="Hours" className="w-24" type="number" />
+                  <Input placeholder="Rate" className="w-24" type="number" />
+                  <Button size="sm" variant="ghost">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Plus size={14} className="mr-2" />
+                  Add Line Item
+                </Button>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowInvoiceDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: "Invoice Created",
+                  description: "Invoice has been created successfully.",
+                });
+                setShowInvoiceDialog(false);
+              }}>
+                Create Invoice
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Time Entry Dialog */}
+      <Dialog open={showTimeEntryDialog} onOpenChange={setShowTimeEntryDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTimeEntry ? 'Edit Time Entry' : 'Add Time Entry'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Description</Label>
+              <Input 
+                defaultValue={editingTimeEntry?.description} 
+                placeholder="What did you work on?" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Date</Label>
+                <Input 
+                  type="date" 
+                  defaultValue={editingTimeEntry?.date || new Date().toISOString().split('T')[0]} 
+                />
+              </div>
+              <div>
+                <Label>Hours</Label>
+                <Input 
+                  type="number" 
+                  step="0.25" 
+                  defaultValue={editingTimeEntry?.hours || ''} 
+                  placeholder="0.00" 
+                />
+              </div>
+              <div>
+                <Label>Rate ($/hr)</Label>
+                <Input 
+                  type="number" 
+                  defaultValue={editingTimeEntry?.rate || 250} 
+                  placeholder="250" 
+                />
+              </div>
+              <div>
+                <Label>Billable</Label>
+                <Select defaultValue={editingTimeEntry?.billable ? 'yes' : 'no'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Task (Optional)</Label>
+              <Select defaultValue={editingTimeEntry?.task || ''}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a task..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No specific task</SelectItem>
+                  {mockTasks.map(task => (
+                    <SelectItem key={task.id} value={task.id}>
+                      {task.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => {
+                setShowTimeEntryDialog(false);
+                setEditingTimeEntry(null);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({
+                  title: editingTimeEntry ? "Time Entry Updated" : "Time Entry Added",
+                  description: editingTimeEntry ? "Time entry has been updated." : "Time entry has been added.",
+                });
+                setShowTimeEntryDialog(false);
+                setEditingTimeEntry(null);
+              }}>
+                {editingTimeEntry ? 'Update' : 'Add'} Entry
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

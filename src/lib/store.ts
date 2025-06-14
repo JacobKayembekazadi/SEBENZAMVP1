@@ -18,8 +18,51 @@ export interface Client {
   email?: string;
   phone?: string;
   company?: string;
+  type: 'individual' | 'business';
   status: 'active' | 'inactive' | 'prospective';
   createdAt: Date;
+  // Enhanced fields
+  categories: string[];
+  tags: string[];
+  priority: 'high' | 'medium' | 'low';
+  relatedClients: string[];
+  notes: {
+    id: string;
+    content: string;
+    createdAt: Date;
+    createdBy: string;
+  }[];
+  metrics: {
+    totalBilling: number;
+    averageCaseValue: number;
+    clientSince: Date;
+    lastPayment?: Date;
+    paymentHistory: {
+      date: Date;
+      amount: number;
+      status: 'paid' | 'pending' | 'overdue';
+    }[];
+  };
+  communicationPreferences: {
+    preferredMethod: 'email' | 'phone' | 'mail';
+    preferredTime?: string;
+    doNotContact: boolean;
+    language: string;
+  };
+  documents: {
+    id: string;
+    name: string;
+    type: string;
+    uploadedAt: Date;
+    url: string;
+  }[];
+  activity: {
+    id: string;
+    type: 'note' | 'call' | 'meeting' | 'email' | 'document' | 'payment';
+    description: string;
+    date: Date;
+    user: string;
+  }[];
 }
 
 export interface Case {
@@ -104,12 +147,82 @@ export type AppAction =
   | { type: 'DELETE_TIME_ENTRY'; payload: string }
   | { type: 'SET_CLIENT_FILTER'; payload: Partial<AppState['filters']['clients']> }
   | { type: 'SET_CASE_FILTER'; payload: Partial<AppState['filters']['cases']> }
-  | { type: 'CLEAR_FILTERS' };
+  | { type: 'CLEAR_FILTERS' }
+  | { type: 'UPDATE_CLIENT_CATEGORIES'; payload: { id: string; categories: string[] } }
+  | { type: 'UPDATE_CLIENT_TAGS'; payload: { id: string; tags: string[] } }
+  | { type: 'UPDATE_CLIENT_RELATIONSHIPS'; payload: { id: string; relatedClients: string[] } }
+  | { type: 'ADD_CLIENT_NOTE'; payload: { clientId: string; note: Client['notes'][0] } }
+  | { type: 'UPDATE_CLIENT_METRICS'; payload: { id: string; metrics: Client['metrics'] } }
+  | { type: 'UPDATE_CLIENT_COMMUNICATION_PREFS'; payload: { id: string; prefs: Client['communicationPreferences'] } }
+  | { type: 'ADD_CLIENT_DOCUMENT'; payload: { clientId: string; document: Client['documents'][0] } }
+  | { type: 'ADD_CLIENT_ACTIVITY'; payload: { clientId: string; activity: Client['activity'][0] } };
 
 // Initial State
 const initialState: AppState = {
   user: null,
-  clients: [],
+  clients: [
+    {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john.doe@example.com',
+      phone: '(555) 123-4567',
+      company: 'Acme Corporation',
+      type: 'business',
+      status: 'active',
+      createdAt: new Date('2023-01-15'),
+      categories: ['Corporate', 'VIP'],
+      tags: ['technology', 'high-value', 'long-term'],
+      priority: 'high',
+      relatedClients: ['2', '3'],
+      notes: [],
+      metrics: {
+        totalBilling: 125000,
+        averageCaseValue: 25000,
+        clientSince: new Date('2023-01-15'),
+        lastPayment: new Date('2024-01-10'),
+        paymentHistory: [],
+      },
+      communicationPreferences: {
+        preferredMethod: 'email',
+        preferredTime: '9:00 AM - 5:00 PM',
+        doNotContact: false,
+        language: 'English',
+      },
+      documents: [],
+      activity: [],
+    },
+    {
+      id: '2',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      email: 'jane.smith@personal.com',
+      phone: '(555) 987-6543',
+      type: 'individual',
+      status: 'active',
+      createdAt: new Date('2023-02-20'),
+      categories: ['Individual'],
+      tags: ['personal', 'estate-planning'],
+      priority: 'medium',
+      relatedClients: [],
+      notes: [],
+      metrics: {
+        totalBilling: 45000,
+        averageCaseValue: 15000,
+        clientSince: new Date('2023-02-20'),
+        lastPayment: new Date('2024-01-05'),
+        paymentHistory: [],
+      },
+      communicationPreferences: {
+        preferredMethod: 'phone',
+        preferredTime: '2:00 PM - 6:00 PM',
+        doNotContact: false,
+        language: 'English',
+      },
+      documents: [],
+      activity: [],
+    },
+  ],
   cases: [],
   timeEntries: [],
   loading: {
@@ -239,6 +352,86 @@ function appReducer(state: AppState, action: AppAction): AppState {
           clients: {},
           cases: {},
         },
+      };
+
+    case 'UPDATE_CLIENT_CATEGORIES':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id
+            ? { ...client, categories: action.payload.categories }
+            : client
+        ),
+      };
+
+    case 'UPDATE_CLIENT_TAGS':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id
+            ? { ...client, tags: action.payload.tags }
+            : client
+        ),
+      };
+
+    case 'UPDATE_CLIENT_RELATIONSHIPS':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id
+            ? { ...client, relatedClients: action.payload.relatedClients }
+            : client
+        ),
+      };
+
+    case 'ADD_CLIENT_NOTE':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.clientId
+            ? { ...client, notes: [...client.notes, action.payload.note] }
+            : client
+        ),
+      };
+
+    case 'UPDATE_CLIENT_METRICS':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id
+            ? { ...client, metrics: action.payload.metrics }
+            : client
+        ),
+      };
+
+    case 'UPDATE_CLIENT_COMMUNICATION_PREFS':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.id
+            ? { ...client, communicationPreferences: action.payload.prefs }
+            : client
+        ),
+      };
+
+    case 'ADD_CLIENT_DOCUMENT':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.clientId
+            ? { ...client, documents: [...client.documents, action.payload.document] }
+            : client
+        ),
+      };
+
+    case 'ADD_CLIENT_ACTIVITY':
+      return {
+        ...state,
+        clients: state.clients.map(client =>
+          client.id === action.payload.clientId
+            ? { ...client, activity: [...client.activity, action.payload.activity] }
+            : client
+        ),
       };
 
     default:

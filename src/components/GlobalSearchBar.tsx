@@ -203,7 +203,7 @@ export function GlobalSearchBar() {
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => searchTerm && setShowResults(true)}
-          className="w-full pl-10 pr-20 py-2 text-sm"
+          className="w-full pl-10 pr-20 py-2 text-sm glass"
         />
         {searchTerm && (
           <button
@@ -226,7 +226,7 @@ export function GlobalSearchBar() {
       {showResults && searchResults.length > 0 && (
         <div
           ref={resultsRef}
-          className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50"
+          className="absolute top-full mt-2 w-full glass-dropdown max-h-96 overflow-y-auto z-50"
         >
           <div className="p-2">
             {searchResults.map((result, index) => (
@@ -240,8 +240,8 @@ export function GlobalSearchBar() {
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={`flex items-start gap-3 p-3 rounded-md cursor-pointer transition-colors ${
                   index === selectedIndex
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-accent/10 backdrop-blur-sm'
+                    : 'hover:bg-accent/5'
                 }`}
               >
                 <div className={`p-2 rounded ${getTypeColor(result.type)}`}>
@@ -274,7 +274,7 @@ export function GlobalSearchBar() {
 
       {/* Loading State */}
       {isSearching && (
-        <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 p-8 z-50">
+        <div className="absolute top-full mt-2 w-full glass-dropdown p-8 z-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-2 text-sm text-gray-500">Searching...</p>
@@ -284,7 +284,7 @@ export function GlobalSearchBar() {
 
       {/* No Results */}
       {showResults && !isSearching && searchTerm && searchResults.length === 0 && (
-        <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-200 p-8 z-50">
+        <div className="absolute top-full mt-2 w-full glass-dropdown p-8 z-50">
           <div className="text-center">
             <p className="text-sm text-gray-500">No results found for "{searchTerm}"</p>
           </div>

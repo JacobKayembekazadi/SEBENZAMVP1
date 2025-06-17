@@ -89,17 +89,17 @@ const Dashboard = () => {
   };
 
   const QuickActionCard = ({ icon, title, description, buttonText, buttonAction, color = "blue" }: any) => (
-    <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'} hover:shadow-lg transition-shadow`}>
+    <Card className={`${isDark ? 'glass-dark' : 'glass-card'} hover:shadow-lg transition-shadow`}>
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
           <div className={`p-3 rounded-lg ${
-            color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30' :
-            color === 'green' ? 'bg-green-100 dark:bg-green-900/30' :
-            color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/30' :
-            color === 'red' ? 'bg-red-100 dark:bg-red-900/30' :
-            color === 'teal' ? 'bg-teal-100 dark:bg-teal-900/30' :
-            color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/30' :
-            'bg-gray-100 dark:bg-gray-900/30'
+            color === 'blue' ? 'bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm' :
+            color === 'green' ? 'bg-green-100/70 dark:bg-green-900/30 backdrop-blur-sm' :
+            color === 'purple' ? 'bg-purple-100/70 dark:bg-purple-900/30 backdrop-blur-sm' :
+            color === 'red' ? 'bg-red-100/70 dark:bg-red-900/30 backdrop-blur-sm' :
+            color === 'teal' ? 'bg-teal-100/70 dark:bg-teal-900/30 backdrop-blur-sm' :
+            color === 'indigo' ? 'bg-indigo-100/70 dark:bg-indigo-900/30 backdrop-blur-sm' :
+            'bg-gray-100/70 dark:bg-gray-900/30 backdrop-blur-sm'
           }`}>
             {icon}
           </div>
@@ -108,13 +108,13 @@ const Dashboard = () => {
             <p className={`text-sm mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{description}</p>
             <Button 
               className={`${
-                color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' :
-                color === 'green' ? 'bg-green-600 hover:bg-green-700' :
-                color === 'purple' ? 'bg-purple-600 hover:bg-purple-700' :
-                color === 'red' ? 'bg-red-600 hover:bg-red-700' :
-                color === 'teal' ? 'bg-teal-600 hover:bg-teal-700' :
-                color === 'indigo' ? 'bg-indigo-600 hover:bg-indigo-700' :
-                'bg-gray-600 hover:bg-gray-700'
+                color === 'blue' ? 'bg-blue-600/90 hover:bg-blue-700/90 backdrop-blur-sm' :
+                color === 'green' ? 'bg-green-600/90 hover:bg-green-700/90 backdrop-blur-sm' :
+                color === 'purple' ? 'bg-purple-600/90 hover:bg-purple-700/90 backdrop-blur-sm' :
+                color === 'red' ? 'bg-red-600/90 hover:bg-red-700/90 backdrop-blur-sm' :
+                color === 'teal' ? 'bg-teal-600/90 hover:bg-teal-700/90 backdrop-blur-sm' :
+                color === 'indigo' ? 'bg-indigo-600/90 hover:bg-indigo-700/90 backdrop-blur-sm' :
+                'bg-gray-600/90 hover:bg-gray-700/90 backdrop-blur-sm'
               } text-white`}
               onClick={buttonAction}
             >
@@ -146,7 +146,7 @@ const Dashboard = () => {
             variant="outline"
             size="sm"
             onClick={toggleTheme}
-            className={isDark ? 'border-gray-600 text-gray-300 hover:text-white' : ''}
+            className={isDark ? 'border-gray-600 text-gray-300 hover:text-white glass-dark' : 'glass'}
           >
             {isDark ? <Sun size={16} className="mr-2" /> : <Moon size={16} className="mr-2" />}
             {isDark ? 'Light Mode' : 'Dark Mode'}
@@ -156,10 +156,10 @@ const Dashboard = () => {
         {/* Financial Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {/* Outstanding Invoices */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <div className="p-2 bg-red-100/70 dark:bg-red-900/30 backdrop-blur-sm rounded-lg">
                   <Receipt size={20} className="text-red-600" />
                 </div>
                 <div>
@@ -168,11 +168,11 @@ const Dashboard = () => {
                     {formatCurrency(dashboardData.outstandingInvoices.amount)}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs backdrop-blur-sm">
                       {dashboardData.outstandingInvoices.count} invoices
                     </Badge>
                     {dashboardData.outstandingInvoices.overdue > 0 && (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="text-xs backdrop-blur-sm">
                         {dashboardData.outstandingInvoices.overdue} overdue
                       </Badge>
                     )}
@@ -183,10 +183,10 @@ const Dashboard = () => {
           </Card>
 
           {/* Outstanding Quotes */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <div className="p-2 bg-yellow-100/70 dark:bg-yellow-900/30 backdrop-blur-sm rounded-lg">
                   <FileText size={20} className="text-yellow-600" />
                 </div>
                 <div>
@@ -195,11 +195,11 @@ const Dashboard = () => {
                     {formatCurrency(dashboardData.outstandingQuotes.amount)}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs backdrop-blur-sm">
                       {dashboardData.outstandingQuotes.count} quotes
                     </Badge>
                     {dashboardData.outstandingQuotes.expiringSoon > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs backdrop-blur-sm">
                         {dashboardData.outstandingQuotes.expiringSoon} expiring soon
                       </Badge>
                     )}
@@ -210,10 +210,10 @@ const Dashboard = () => {
           </Card>
 
           {/* Total Profits */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <div className="p-2 bg-green-100/70 dark:bg-green-900/30 backdrop-blur-sm rounded-lg">
                   <TrendingUp size={20} className="text-green-600" />
                 </div>
                 <div>
@@ -231,10 +231,10 @@ const Dashboard = () => {
           </Card>
 
           {/* Income */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-2 bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg">
                   <DollarSign size={20} className="text-blue-600" />
                 </div>
                 <div>
@@ -252,10 +252,10 @@ const Dashboard = () => {
           </Card>
 
           {/* Expenses */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <div className="p-2 bg-purple-100/70 dark:bg-purple-900/30 backdrop-blur-sm rounded-lg">
                   <Wallet size={20} className="text-purple-600" />
                 </div>
                 <div>
@@ -274,11 +274,11 @@ const Dashboard = () => {
         </div>
 
         {/* Unbilled Time */}
-        <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'} mb-8`}>
+        <Card className={`${isDark ? 'glass-dark' : 'glass-card'} mb-8`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                <div className="p-3 bg-orange-100/70 dark:bg-orange-900/30 backdrop-blur-sm rounded-lg">
                   <Timer size={24} className="text-orange-600" />
                 </div>
                 <div>
@@ -291,7 +291,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <Button 
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-orange-600/90 hover:bg-orange-700/90 text-white backdrop-blur-sm"
                 onClick={() => navigate('/invoices/create?source=dashboard&prefill=unbilled')}
               >
                 <Receipt size={16} className="mr-2" />
@@ -361,7 +361,7 @@ const Dashboard = () => {
         {/* Financial Charts and Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Revenue Chart */}
-          <Card className={`lg:col-span-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`lg:col-span-2 ${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardHeader>
               <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <BarChart3 size={20} />
@@ -369,7 +369,7 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
+              <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-300/30 rounded-lg">
                 <div className="text-center">
                   <PieChart size={48} className={`mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
                   <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Revenue chart will be displayed here</p>
@@ -379,7 +379,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Recent Activity */}
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardHeader>
               <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 <Activity size={20} />
@@ -391,9 +391,9 @@ const Dashboard = () => {
                 {dashboardData.recentActivity.map((activity, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${
-                      activity.type === 'invoice' ? 'bg-green-100 dark:bg-green-900/30' :
-                      activity.type === 'quote' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                      'bg-red-100 dark:bg-red-900/30'
+                      activity.type === 'invoice' ? 'bg-green-100/70 dark:bg-green-900/30 backdrop-blur-sm' :
+                      activity.type === 'quote' ? 'bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm' :
+                      'bg-red-100/70 dark:bg-red-900/30 backdrop-blur-sm'
                     }`}>
                       {activity.type === 'invoice' ? <Receipt size={14} className="text-green-600" /> :
                        activity.type === 'quote' ? <FileText size={14} className="text-blue-600" /> :
@@ -420,7 +420,7 @@ const Dashboard = () => {
         </div>
 
         {/* Payment Gateway Integration Status */}
-        <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'} mb-6`}>
+        <Card className={`${isDark ? 'glass-dark' : 'glass-card'} mb-6`}>
           <CardHeader>
             <CardTitle className={`flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <Zap size={20} />
@@ -429,33 +429,33 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className={isDark ? 'text-white' : 'text-gray-900'}>Stripe</span>
                 </div>
-                <Badge variant="outline" className="text-green-600">Connected</Badge>
+                <Badge variant="outline" className="text-green-600 backdrop-blur-sm">Connected</Badge>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
                   <span className={isDark ? 'text-white' : 'text-gray-900'}>PayPal</span>
                 </div>
-                <Badge variant="outline">Not Connected</Badge>
+                <Badge variant="outline" className="backdrop-blur-sm">Not Connected</Badge>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
                   <span className={isDark ? 'text-white' : 'text-gray-900'}>Bank Transfer</span>
                 </div>
-                <Badge variant="outline">Not Connected</Badge>
+                <Badge variant="outline" className="backdrop-blur-sm">Not Connected</Badge>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Upcoming Tasks Section - Keeping from original */}
-        <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+        <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
           <CardHeader className="pb-2">
             <CardTitle className={`text-lg font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <CalendarClock size={16} />
@@ -465,7 +465,7 @@ const Dashboard = () => {
           <CardContent className="space-y-4">
             <div className="flex items-start">
               <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
+                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
               </div>
               <div className="ml-3">
                 <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -486,7 +486,7 @@ const Dashboard = () => {
             </div>
             <div className="flex items-start">
               <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
+                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
               </div>
               <div className="ml-3">
                 <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -507,7 +507,7 @@ const Dashboard = () => {
             </div>
             <div className="flex items-start">
               <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
+                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
               </div>
               <div className="ml-3">
                 <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>

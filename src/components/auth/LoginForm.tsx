@@ -108,9 +108,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md shadow-xl glass-card">
         <CardHeader className="text-center pb-8">
-          <div className="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-blue-600/80 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
             <div className="text-white text-2xl font-bold">SS</div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
@@ -139,7 +139,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 placeholder="Enter your email address"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={errors.email ? 'border-red-500 focus:border-red-500' : ''}
+                className={errors.email ? 'border-red-500 focus:border-red-500 glass' : 'glass'}
                 disabled={isSubmitting}
               />
               {errors.email && (
@@ -156,7 +156,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={errors.password ? 'border-red-500 focus:border-red-500' : ''}
+                className={errors.password ? 'border-red-500 focus:border-red-500 glass' : 'glass'}
                 disabled={isSubmitting}
               />
               {errors.password && (
@@ -180,7 +180,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             {/* Login Button */}
             <Button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+              className="w-full bg-blue-600/90 hover:bg-blue-700/90 text-white py-3 backdrop-blur-sm"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -194,7 +194,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             </Button>
 
             {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-md">
+            <div className="mt-6 p-4 bg-gray-50/70 backdrop-blur-sm rounded-md">
               <p className="text-sm font-medium text-gray-700 mb-2">Demo Accounts:</p>
               <div className="text-xs text-gray-600 space-y-1">
                 <p><strong>New User (with tour):</strong> newuser@example.com / password</p>
@@ -218,4 +218,4 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       </Card>
     </div>
   );
-} 
+}

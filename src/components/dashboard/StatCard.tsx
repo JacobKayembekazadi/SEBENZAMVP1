@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -23,10 +22,10 @@ export function StatCard({
   iconClassName
 }: StatCardProps) {
   return (
-    <div className={cn("bg-white rounded-lg p-5 border border-gray-100", className)}>
+    <div className={cn("rounded-lg p-5 border border-gray-100/30 glass-card", className)}>
       <div className="flex justify-between items-start mb-3">
         <p className="text-sm font-medium text-gray-500">{title}</p>
-        <div className={cn("flex items-center justify-center text-white rounded-full p-1.5", iconClassName || "bg-primary")}>
+        <div className={cn("flex items-center justify-center text-white rounded-full p-1.5 backdrop-blur-sm", iconClassName || "bg-primary/80")}>
           {icon}
         </div>
       </div>

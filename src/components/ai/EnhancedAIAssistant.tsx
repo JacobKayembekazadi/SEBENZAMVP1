@@ -195,7 +195,7 @@ export function EnhancedAIAssistant() {
   return (
     <div className="fixed bottom-4 right-4 z-50" data-tour="ai-assistant">
       {isOpen ? (
-        <Card className="w-80 md:w-96 shadow-xl border border-gray-200 max-h-[600px] flex flex-col">
+        <Card className="w-80 md:w-96 shadow-xl border border-gray-200/30 max-h-[600px] flex flex-col glass-card">
           <CardHeader className="p-4 border-b flex flex-row items-center justify-between flex-shrink-0">
             <CardTitle className="text-base flex items-center gap-2">
               <MessageSquare size={18} className="text-blue-600" />
@@ -226,8 +226,8 @@ export function EnhancedAIAssistant() {
                         <div 
                           className={`max-w-[85%] rounded-lg text-sm ${
                             msg.isUser 
-                              ? 'bg-blue-600 text-white' 
-                              : 'bg-gray-100 text-gray-900'
+                              ? 'bg-blue-600/90 text-white backdrop-blur-sm' 
+                              : 'bg-gray-100/80 text-gray-900 backdrop-blur-sm'
                           }`}
                         >
                           <div className="p-3">
@@ -236,7 +236,7 @@ export function EnhancedAIAssistant() {
                               <div className="flex-1">
                                 <div className="whitespace-pre-wrap">{msg.text}</div>
                                 {msg.metadata?.confidence && (
-                                  <Badge variant="outline" className="text-xs mt-2">
+                                  <Badge variant="outline" className="text-xs mt-2 backdrop-blur-sm">
                                     Confidence: {Math.round(msg.metadata.confidence * 100)}%
                                   </Badge>
                                 )}
@@ -244,7 +244,7 @@ export function EnhancedAIAssistant() {
                             </div>
                           </div>
                           {!msg.isUser && (
-                            <div className="px-3 pb-2 flex items-center gap-2 border-t border-gray-200">
+                            <div className="px-3 pb-2 flex items-center gap-2 border-t border-gray-200/50">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -268,7 +268,7 @@ export function EnhancedAIAssistant() {
                     
                     {isTyping && (
                       <div className="flex justify-start">
-                        <div className="bg-gray-100 rounded-lg p-3 max-w-[85%]">
+                        <div className="bg-gray-100/80 backdrop-blur-sm rounded-lg p-3 max-w-[85%]">
                           <div className="flex items-center gap-2">
                             <Bot size={14} />
                             <div className="flex space-x-1">
@@ -284,7 +284,7 @@ export function EnhancedAIAssistant() {
                   </div>
                 </ScrollArea>
                 
-                <div className="p-3 border-t border-gray-100 flex-shrink-0">
+                <div className="p-3 border-t border-gray-100/30 flex-shrink-0">
                   <div className="mb-3">
                     <p className="text-xs text-gray-500 mb-2">Suggested prompts:</p>
                     <div className="flex flex-wrap gap-1">
@@ -293,7 +293,7 @@ export function EnhancedAIAssistant() {
                           key={idx}
                           variant="outline"
                           size="sm"
-                          className="text-xs h-7 px-2"
+                          className="text-xs h-7 px-2 glass"
                           onClick={() => setInputValue(prompt.text)}
                         >
                           {prompt.icon}
@@ -308,10 +308,10 @@ export function EnhancedAIAssistant() {
               <TabsContent value="actions" className="flex-1 p-4">
                 <div className="grid grid-cols-1 gap-3">
                   {quickActions.map((action, idx) => (
-                    <Card key={idx} className="cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => handleQuickAction(action.action)}>
+                    <Card key={idx} className="cursor-pointer hover:bg-accent/5 transition-colors glass-card" onClick={() => handleQuickAction(action.action)}>
                       <CardContent className="p-3">
                         <h4 className="font-medium text-sm">{action.title}</h4>
-                        <p className="text-xs text-gray-600 mt-1">{action.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{action.description}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -323,21 +323,21 @@ export function EnhancedAIAssistant() {
                   <div>
                     <h4 className="font-medium text-sm mb-2">AI-Powered Tools</h4>
                     <div className="grid grid-cols-1 gap-2">
-                      <Button variant="outline" className="text-xs justify-start h-auto py-2" onClick={() => handleQuickAction("Analyze my practice performance")}>
+                      <Button variant="outline" className="text-xs justify-start h-auto py-2 glass" onClick={() => handleQuickAction("Analyze my practice performance")}>
                         <Brain size={16} className="mr-2" />
                         <div className="text-left">
                           <div>Practice Analytics</div>
                           <div className="text-gray-500">AI insights on your firm</div>
                         </div>
                       </Button>
-                      <Button variant="outline" className="text-xs justify-start h-auto py-2" onClick={() => handleQuickAction("Help me with document automation")}>
+                      <Button variant="outline" className="text-xs justify-start h-auto py-2 glass" onClick={() => handleQuickAction("Help me with document automation")}>
                         <FileEdit size={16} className="mr-2" />
                         <div className="text-left">
                           <div>Document Automation</div>
                           <div className="text-gray-500">Smart template generation</div>
                         </div>
                       </Button>
-                      <Button variant="outline" className="text-xs justify-start h-auto py-2" onClick={() => handleQuickAction("Predict case outcomes")}>
+                      <Button variant="outline" className="text-xs justify-start h-auto py-2 glass" onClick={() => handleQuickAction("Predict case outcomes")}>
                         <FileSearch size={16} className="mr-2" />
                         <div className="text-left">
                           <div>Predictive Analysis</div>
@@ -357,13 +357,13 @@ export function EnhancedAIAssistant() {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask me anything about your legal practice..."
-                className="flex-1 text-sm"
+                className="flex-1 text-sm glass"
                 disabled={isTyping}
               />
               <Button 
                 type="submit" 
                 size="icon" 
-                className="bg-blue-600 hover:bg-blue-700 flex-shrink-0"
+                className="bg-blue-600/90 hover:bg-blue-700/90 flex-shrink-0 backdrop-blur-sm"
                 disabled={isTyping || !inputValue.trim()}
               >
                 <Send size={16} />
@@ -375,11 +375,11 @@ export function EnhancedAIAssistant() {
         <Button 
           onClick={toggleOpen} 
           size="icon" 
-          className="h-12 w-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+          className="h-12 w-12 rounded-full shadow-lg bg-blue-600/90 hover:bg-blue-700/90 backdrop-blur-sm"
         >
           <MessageSquare size={20} />
         </Button>
       )}
     </div>
   );
-} 
+}

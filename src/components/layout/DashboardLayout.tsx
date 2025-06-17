@@ -34,8 +34,8 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
     <div className="min-h-screen bg-background">
       {/* Mobile sidebar overlay */}
       <div className={`fixed inset-0 z-40 lg:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={toggleMobileMenu}></div>
-        <div className="fixed left-0 top-0 h-full w-64 bg-sidebar-DEFAULT">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={toggleMobileMenu}></div>
+        <div className="fixed left-0 top-0 h-full w-64 glass-sidebar">
           <Sidebar collapsed={false} />
         </div>
       </div>
@@ -52,7 +52,7 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
         {/* Main content area */}
         <div className="flex flex-1 flex-col min-h-screen">
           {/* Header */}
-          <header className="h-16 border-b border-gray-200 bg-white sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 shadow-sm">
+          <header className="h-16 glass-header flex items-center justify-between px-4 lg:px-6">
             <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
@@ -96,7 +96,7 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 glass-dropdown">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>Profile</DropdownMenuItem>

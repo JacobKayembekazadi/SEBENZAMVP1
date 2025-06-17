@@ -44,7 +44,7 @@ const SidebarItem = ({ icon: Icon, label, to, badge, collapsed, dataTour }: Side
         "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
         "hover:bg-sidebar-hover hover:text-white group",
         isActive 
-          ? "text-white bg-accent shadow-sm" 
+          ? "text-white bg-accent/20 shadow-sm backdrop-blur-sm" 
           : "text-gray-300 hover:text-white",
         collapsed && "justify-center px-2"
       )}
@@ -71,7 +71,7 @@ const SidebarItem = ({ icon: Icon, label, to, badge, collapsed, dataTour }: Side
         <TooltipTrigger asChild>
           {itemContent}
         </TooltipTrigger>
-        <TooltipContent side="right" className="ml-2">
+        <TooltipContent side="right" className="ml-2 glass-dropdown">
           <p>{label}</p>
         </TooltipContent>
       </Tooltip>
@@ -97,7 +97,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   };
 
   return (
-    <div className="h-full bg-sidebar-DEFAULT flex flex-col border-r border-gray-800 overflow-hidden">
+    <div className="h-full glass-sidebar flex flex-col overflow-hidden">
       {/* Header */}
       <div className={cn("p-4 border-b border-gray-800", collapsed && "p-2")}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
@@ -105,17 +105,17 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             <h1 className="text-2xl font-bold text-white tracking-tight">Sebenza</h1>
           )}
           {collapsed && (
-            <div className="bg-accent p-2 rounded-lg">
+            <div className="bg-accent/20 backdrop-blur-sm p-2 rounded-lg">
               <span className="text-lg font-bold text-white">S</span>
             </div>
           )}
         </div>
 
         {!collapsed && (
-          <div className="flex items-center gap-3 mt-6 p-3 bg-gray-800/50 rounded-lg">
+          <div className="flex items-center gap-3 mt-6 p-3 bg-gray-800/50 rounded-lg backdrop-blur-sm">
             <Avatar className="h-9 w-9 border-2 border-accent/20">
               <AvatarImage src="/placeholder.svg" alt="User" />
-              <AvatarFallback className="bg-accent text-white text-sm font-medium">JC</AvatarFallback>
+              <AvatarFallback className="bg-accent/20 text-white text-sm font-medium">JC</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-white truncate">Jessica Chen</p>
@@ -126,7 +126,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4">
+      <div className="flex-1 overflow-y-auto py-4 sidebar-scrollbar">
         <div className={cn("space-y-1", collapsed ? "px-2" : "px-4")}>
           <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/" collapsed={collapsed} dataTour="dashboard" />
           <SidebarItem icon={Users} label="Clients" to="/clients" collapsed={collapsed} dataTour="cases" />

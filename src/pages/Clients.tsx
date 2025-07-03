@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,18 +22,26 @@ import {
   Filter,
   Tag,
   Star,
-  TrendingUp
+  TrendingUp,
+  Trash2,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { AddClientDialog } from "@/components/clients/AddClientDialog";
+import { EditClientDialog } from "@/components/clients/EditClientDialog";
+import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
+import { ClientDetailDialog } from "@/components/clients/ClientDetailDialog";
 import { ClientImport } from "@/components/clients/ClientImport";
 import { useToast } from "@/hooks/use-toast";
 import { useAppState, Client } from "@/lib/store";
 import { ClientFilters } from "@/components/clients/ClientFilters";
+import { clientsApi } from "@/lib/api";
 // import { ClientRetentionAnalysis } from "@/components/clients/enhanced/ClientRetentionAnalysis";
 // import { BulkEmailDialog } from "@/components/clients/communications/BulkEmailDialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 
 interface ClientFiltersState {
@@ -47,13 +55,18 @@ interface ClientFiltersState {
 const Clients = () => {
   const { toast } = useToast();
   const { state, dispatch } = useAppState();
-  const { clients: storeClients } = state;
+  const { clients: storeClients, loading, errors } = state;
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
   const [showRetentionAnalysis, setShowRetentionAnalysis] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<ClientFiltersState>({
     categories: [],
     tags: [],
@@ -61,6 +74,44 @@ const Clients = () => {
     status: [],
     type: [],
   });
+
+  // Load clients on component mount
+  useEffect(() => {
+    loadClients();
+  }, []);
+
+  const loadClients = async () => {
+    dispatch({ type: 'SET_LOADING', payload: { key: 'clients', value: true } });
+    dispatch({ type: 'SET_ERROR', payload: { key: 'clients', value: null } });
+    
+    try {
+      // In a real app, you would fetch from the API
+      // const response = await clientsApi.getAll();
+      // dispatch({ type: 'SET_CLIENTS', payload: response.clients });
+      
+      // For now, use the existing mock data
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: { key: 'clients', value: 'Failed to load clients' } });
+      toast({
+        title: "Error",
+        description: "Failed to load clients. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: { key: 'clients', value: false } });
+    }
+  };
+
+  const refreshClients = async () => {
+    setIsRefreshing(true);
+    await loadClients();
+    setIsRefreshing(false);
+    toast({
+      title: "Refreshed",
+      description: "Client data has been refreshed.",
+    });
+  };
 
   // Get unique categories and tags for filter options
   const availableCategories = useMemo(() => {
@@ -177,14 +228,35 @@ const Clients = () => {
   };
 
   const handleEditClient = (client: Client) => {
-    toast({
-      title: "Edit Client",
-      description: `Opening edit form for ${client.firstName} ${client.lastName}`,
-    });
+    setSelectedClient(client);
+    setShowEditDialog(true);
   };
 
   const handleViewClient = (client: Client) => {
-    window.location.href = `/clients/${client.id}`;
+    setSelectedClient(client);
+    setShowDetailDialog(true);
+  };
+
+  const handleDeleteClient = (client: Client) => {
+    setSelectedClient(client);
+    setShowDeleteDialog(true);
+  };
+
+  const handleClientUpdated = (updatedClient: Client) => {
+    dispatch({ type: 'UPDATE_CLIENT', payload: { id: updatedClient.id, updates: updatedClient } });
+    toast({
+      title: "Client Updated",
+      description: `${updatedClient.firstName} ${updatedClient.lastName} has been updated successfully.`,
+    });
+  };
+
+  const handleClientDeleted = (clientId: string) => {
+    dispatch({ type: 'DELETE_CLIENT', payload: clientId });
+    setSelectedClientIds(prev => prev.filter(id => id !== clientId));
+    toast({
+      title: "Client Deleted",
+      description: "Client has been deleted successfully.",
+    });
   };
 
   const handleContactClient = (client: Client, method: 'email' | 'phone') => {
@@ -270,6 +342,15 @@ const Clients = () => {
           </Sheet>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={refreshClients}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            Refresh
+          </Button>
           {/* <Button
             variant="outline"
             onClick={() => setShowRetentionAnalysis(true)}
@@ -313,6 +394,14 @@ const Clients = () => {
           </Button>
         </div>
       </div>
+
+      {/* Error Display */}
+      {errors.clients && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errors.clients}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -385,174 +474,192 @@ const Clients = () => {
           <CardTitle>Client Directory</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={selectedClientIds.length === filteredClients.length && filteredClients.length > 0}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedClientIds(filteredClients.map(c => c.id));
-                        } else {
-                          setSelectedClientIds([]);
-                        }
-                      }}
-                    />
-                  </TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Contact Info</TableHead>
-                  <TableHead>Categories & Tags</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Client Since</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredClients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedClientIds.includes(client.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedClientIds(prev => [...prev, client.id]);
-                          } else {
-                            setSelectedClientIds(prev => prev.filter(id => id !== client.id));
-                          }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar>
-                          <AvatarFallback>{getInitials(client.firstName, client.lastName)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {client.firstName} {client.lastName}
-                          </div>
-                          {client.company && (
-                            <div className="text-sm text-gray-500">{client.company}</div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {client.email && (
-                          <div className="flex items-center text-sm">
-                            <Mail size={14} className="mr-2 text-gray-400" />
-                            <a 
-                              href={`mailto:${client.email}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              {client.email}
-                            </a>
-                          </div>
-                        )}
-                        {client.phone && (
-                          <div className="flex items-center text-sm">
-                            <Phone size={14} className="mr-2 text-gray-400" />
-                            <a 
-                              href={`tel:${client.phone}`}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              {client.phone}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        {client.categories.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {client.categories.map(cat => (
-                              <Badge key={cat} variant="secondary" className="text-xs">
-                                {cat}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                        {client.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {client.tags.map(tag => (
-                              <Badge key={tag} variant="outline" className="text-xs">
-                                <Tag className="h-3 w-3 mr-1" />
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={client.type === 'business' ? 'default' : 'secondary'}>
-                        {client.type === 'business' ? 'Business' : 'Individual'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {getPriorityIcon(client.priority)}
-                        <span className="text-sm capitalize">{client.priority}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={client.status === 'active' ? 'default' : 'secondary'}
-                        className={client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
-                      >
-                        {client.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {formatDate(client.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewClient(client)}>
-                            <Eye size={16} className="mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditClient(client)}>
-                            <Edit size={16} className="mr-2" />
-                            Edit Client
-                          </DropdownMenuItem>
-                          {client.email && (
-                            <DropdownMenuItem onClick={() => handleContactClient(client, 'email')}>
-                              <Mail size={16} className="mr-2" />
-                              Send Email
-                            </DropdownMenuItem>
-                          )}
-                          {client.phone && (
-                            <DropdownMenuItem onClick={() => handleContactClient(client, 'phone')}>
-                              <Phone size={16} className="mr-2" />
-                              Call Client
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filteredClients.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No clients found matching your search criteria.</p>
+          {loading.clients ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
+              <span className="ml-2 text-gray-500">Loading clients...</span>
             </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedClientIds.length === filteredClients.length && filteredClients.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedClientIds(filteredClients.map(c => c.id));
+                            } else {
+                              setSelectedClientIds([]);
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Contact Info</TableHead>
+                      <TableHead>Categories & Tags</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Client Since</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredClients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedClientIds.includes(client.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedClientIds(prev => [...prev, client.id]);
+                              } else {
+                                setSelectedClientIds(prev => prev.filter(id => id !== client.id));
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar>
+                              <AvatarFallback>{getInitials(client.firstName, client.lastName)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {client.firstName} {client.lastName}
+                              </div>
+                              {client.company && (
+                                <div className="text-sm text-gray-500">{client.company}</div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {client.email && (
+                              <div className="flex items-center text-sm">
+                                <Mail size={14} className="mr-2 text-gray-400" />
+                                <a 
+                                  href={`mailto:${client.email}`}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  {client.email}
+                                </a>
+                              </div>
+                            )}
+                            {client.phone && (
+                              <div className="flex items-center text-sm">
+                                <Phone size={14} className="mr-2 text-gray-400" />
+                                <a 
+                                  href={`tel:${client.phone}`}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  {client.phone}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            {client.categories.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {client.categories.map(cat => (
+                                  <Badge key={cat} variant="secondary" className="text-xs">
+                                    {cat}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            {client.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {client.tags.map(tag => (
+                                  <Badge key={tag} variant="outline" className="text-xs">
+                                    <Tag className="h-3 w-3 mr-1" />
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={client.type === 'business' ? 'default' : 'secondary'}>
+                            {client.type === 'business' ? 'Business' : 'Individual'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {getPriorityIcon(client.priority)}
+                            <span className="text-sm capitalize">{client.priority}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={client.status === 'active' ? 'default' : 'secondary'}
+                            className={client.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                          >
+                            {client.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {formatDate(client.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal size={16} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewClient(client)}>
+                                <Eye size={16} className="mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditClient(client)}>
+                                <Edit size={16} className="mr-2" />
+                                Edit Client
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {client.email && (
+                                <DropdownMenuItem onClick={() => handleContactClient(client, 'email')}>
+                                  <Mail size={16} className="mr-2" />
+                                  Send Email
+                                </DropdownMenuItem>
+                              )}
+                              {client.phone && (
+                                <DropdownMenuItem onClick={() => handleContactClient(client, 'phone')}>
+                                  <Phone size={16} className="mr-2" />
+                                  Call Client
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClient(client)}
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                              >
+                                <Trash2 size={16} className="mr-2" />
+                                Delete Client
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {filteredClients.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No clients found matching your search criteria.</p>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -562,6 +669,26 @@ const Clients = () => {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onClientAdded={handleClientAdded}
+      />
+
+      <EditClientDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        client={selectedClient}
+        onClientUpdated={handleClientUpdated}
+      />
+
+      <DeleteClientDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        client={selectedClient}
+        onClientDeleted={handleClientDeleted}
+      />
+
+      <ClientDetailDialog
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+        client={selectedClient}
       />
 
       <ClientImport

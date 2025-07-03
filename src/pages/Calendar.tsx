@@ -1,4 +1,3 @@
-
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarIcon, Clock, Plus, Users, MapPin } from "lucide-react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 
-const events = [
+const initialEvents = [
   {
     id: 1,
     title: "Davidson Estate Review",
@@ -63,9 +67,46 @@ const events = [
 
 const CalendarPage = () => {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
-  
-  const todayEvents = events.filter((event) => event.date === "2023-04-20");
-  
+  const [events, setEvents] = React.useState(initialEvents);
+  const [showEventDialog, setShowEventDialog] = React.useState(false);
+  const [editingEvent, setEditingEvent] = React.useState<any>(null);
+
+  // Filter events for the selected date
+  const selectedDateStr = date ? date.toISOString().split('T')[0] : '';
+  const todayEvents = events.filter((event) => event.date === selectedDateStr);
+
+  // Handler to open dialog for new event
+  const handleAddEvent = () => {
+    setEditingEvent(null);
+    setShowEventDialog(true);
+  };
+
+  // Handler to open dialog for editing
+  const handleEditEvent = (event: any) => {
+    setEditingEvent(event);
+    setShowEventDialog(true);
+  };
+
+  // Handler to save event (add or update)
+  const handleSaveEvent = (eventData: any) => {
+    if (editingEvent) {
+      setEvents(events.map(ev => ev.id === editingEvent.id ? { ...editingEvent, ...eventData } : ev));
+      toast({ title: "Event Updated", description: `Event '${eventData.title}' updated.` });
+    } else {
+      const newEvent = { ...eventData, id: Date.now() };
+      setEvents([newEvent, ...events]);
+      toast({ title: "Event Added", description: `Event '${eventData.title}' added.` });
+    }
+    setShowEventDialog(false);
+    setEditingEvent(null);
+  };
+
+  // Handler to delete event
+  const handleDeleteEvent = (eventId: number) => {
+    setEvents(events.filter(ev => ev.id !== eventId));
+    toast({ title: "Event Deleted", description: "Event deleted successfully.", variant: "destructive" });
+  };
+
   return (
     <DashboardLayout title="Calendar">
       <div className="flex justify-between items-center mb-6">
@@ -75,7 +116,7 @@ const CalendarPage = () => {
             Manage your meetings, court dates, and deadlines
           </p>
         </div>
-        <Button>
+        <Button onClick={handleAddEvent}>
           <Plus size={16} className="mr-2" />
           Add Event
         </Button>
@@ -91,7 +132,7 @@ const CalendarPage = () => {
                 <TabsTrigger value="month">Month</TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">Today</Button>
+                <Button variant="outline" size="sm" onClick={() => setDate(new Date())}>Today</Button>
                 <Button variant="ghost" size="icon">
                   <ChevronLeft size={16} />
                 </Button>
@@ -102,10 +143,13 @@ const CalendarPage = () => {
             </div>
             
             <TabsContent value="day" className="p-4">
-              <h3 className="text-lg font-medium mb-4">Thursday, April 20, 2023</h3>
+              <h3 className="text-lg font-medium mb-4">{date?.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
               <div className="space-y-4">
+                {todayEvents.length === 0 && (
+                  <div className="text-muted-foreground text-center">No events for this day.</div>
+                )}
                 {todayEvents.map((event) => (
-                  <div key={event.id} className="flex border rounded-md overflow-hidden">
+                  <div key={event.id} className="flex border rounded-md overflow-hidden relative group">
                     <div className="w-2 bg-primary"></div>
                     <div className="p-4 flex-1">
                       <div className="flex justify-between items-start">
@@ -127,6 +171,14 @@ const CalendarPage = () => {
                           <span>Client: {event.client}</span>
                         </div>
                       )}
+                      <div className="flex gap-2 mt-4">
+                        <Button size="sm" variant="outline" onClick={() => handleEditEvent(event)} title="Edit Event">
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDeleteEvent(event.id)} title="Delete Event">
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -181,11 +233,62 @@ const CalendarPage = () => {
           </Card>
         </div>
       </div>
+
+      {/* Event Dialog */}
+      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? 'Edit Event' : 'Add Event'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="event-title">Title</label>
+              <Input id="event-title" defaultValue={editingEvent?.title || ''} placeholder="Event title..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="event-type">Type</label>
+              <Input id="event-type" defaultValue={editingEvent?.type || ''} placeholder="Meeting, Deadline, etc." />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="event-date">Date</label>
+                <Input id="event-date" type="date" defaultValue={editingEvent?.date || selectedDateStr} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="event-time">Time</label>
+                <Input id="event-time" defaultValue={editingEvent?.time || ''} placeholder="e.g. 2:00 PM - 3:00 PM" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="event-location">Location</label>
+              <Input id="event-location" defaultValue={editingEvent?.location || ''} placeholder="Location..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="event-client">Client</label>
+              <Input id="event-client" defaultValue={editingEvent?.client || ''} placeholder="Client name..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="event-description">Description</label>
+              <Textarea id="event-description" defaultValue={editingEvent?.description || ''} placeholder="Event description..." rows={3} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowEventDialog(false)}>Cancel</Button>
+              <Button onClick={() => {
+                const title = (document.getElementById('event-title') as HTMLInputElement)?.value;
+                const type = (document.getElementById('event-type') as HTMLInputElement)?.value;
+                const date = (document.getElementById('event-date') as HTMLInputElement)?.value;
+                const time = (document.getElementById('event-time') as HTMLInputElement)?.value;
+                const location = (document.getElementById('event-location') as HTMLInputElement)?.value;
+                const client = (document.getElementById('event-client') as HTMLInputElement)?.value;
+                const description = (document.getElementById('event-description') as HTMLTextAreaElement)?.value;
+                handleSaveEvent({ title, type, date, time, location, client, description });
+              }}>{editingEvent ? 'Update Event' : 'Add Event'}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
 
 export default CalendarPage;
-
-// Make sure to import ChevronLeft and ChevronRight from Lucide
-import { ChevronLeft, ChevronRight } from "lucide-react";

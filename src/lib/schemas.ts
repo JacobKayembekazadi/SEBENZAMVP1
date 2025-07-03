@@ -125,6 +125,31 @@ export const invoiceSchema = z.object({
   updatedAt: z.date(),
 });
 
+// Expense Schemas
+export const expenseSchema = z.object({
+  id: z.string(),
+  caseId: z.string().optional(),
+  clientId: z.string().optional(),
+  userId: z.string(),
+  date: z.date(),
+  description: z.string().min(1, "Description is required"),
+  category: z.enum([
+    "travel", "meals", "accommodation", "supplies", "filing_fees", 
+    "expert_witness", "court_reporter", "copying", "postage", 
+    "telephone", "research", "other"
+  ]),
+  amount: z.number().positive("Amount must be positive"),
+  billable: z.boolean().default(true),
+  status: z.enum(["draft", "submitted", "approved", "reimbursed", "billed"]),
+  receiptUrl: z.string().url().optional(),
+  vendor: z.string().optional(),
+  notes: z.string().optional(),
+  approvedBy: z.string().optional(),
+  approvedAt: z.date().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 // Form Schemas for Create/Update operations
 export const createClientSchema = clientSchema.omit({ 
   id: true, 
@@ -153,6 +178,28 @@ export const createTimeEntrySchema = timeEntrySchema.omit({
 
 export const updateTimeEntrySchema = createTimeEntrySchema.partial();
 
+export const createInvoiceSchema = invoiceSchema.omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  invoiceNumber: true,
+  subtotal: true,
+  totalAmount: true,
+  paidAmount: true 
+});
+
+export const updateInvoiceSchema = createInvoiceSchema.partial();
+
+export const createExpenseSchema = expenseSchema.omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  approvedBy: true,
+  approvedAt: true 
+});
+
+export const updateExpenseSchema = createExpenseSchema.partial();
+
 // Search and Filter Schemas
 export const searchSchema = z.object({
   query: z.string().optional(),
@@ -175,10 +222,15 @@ export type Case = z.infer<typeof caseSchema>;
 export type TimeEntry = z.infer<typeof timeEntrySchema>;
 export type Document = z.infer<typeof documentSchema>;
 export type Invoice = z.infer<typeof invoiceSchema>;
+export type Expense = z.infer<typeof expenseSchema>;
 export type CreateClient = z.infer<typeof createClientSchema>;
 export type UpdateClient = z.infer<typeof updateClientSchema>;
 export type CreateCase = z.infer<typeof createCaseSchema>;
 export type UpdateCase = z.infer<typeof updateCaseSchema>;
 export type CreateTimeEntry = z.infer<typeof createTimeEntrySchema>;
 export type UpdateTimeEntry = z.infer<typeof updateTimeEntrySchema>;
+export type CreateInvoice = z.infer<typeof createInvoiceSchema>;
+export type UpdateInvoice = z.infer<typeof updateInvoiceSchema>;
+export type CreateExpense = z.infer<typeof createExpenseSchema>;
+export type UpdateExpense = z.infer<typeof updateExpenseSchema>;
 export type SearchParams = z.infer<typeof searchSchema>; 

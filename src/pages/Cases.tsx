@@ -389,7 +389,17 @@ const Cases = () => {
           </Button>
         </div>
         <CaseDetailView 
-          case={selectedCase} 
+          case={{
+            ...selectedCase,
+            client: getClientName(selectedCase.clientId),
+            phase: selectedCase.practiceArea,
+            progress: 75, // Default progress for demo
+            clientCanView: true,
+            clientCanComment: true,
+            totalBudget: selectedCase.budget || 50000,
+            currentExpenses: 12500,
+            remainingBudget: (selectedCase.budget || 50000) - 12500
+          }} 
           onUpdate={(updatedCase) => setSelectedCase(updatedCase)}
         />
       </DashboardLayout>
@@ -564,16 +574,6 @@ const Cases = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Case Detail View */}
-      {selectedCase && (
-        <CaseDetailView 
-          case={selectedCase} 
-          onUpdate={(updatedCase) => {
-            setCases(prev => prev.map(c => c.id === updatedCase.id ? updatedCase : c));
-            setSelectedCase(updatedCase);
-          }}
-        />
-      )}
     </DashboardLayout>
   );
 };

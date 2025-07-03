@@ -21,6 +21,7 @@ import Expenses from "./pages/Expenses";
 import Accounting from "./pages/Accounting";
 import Settings from "./pages/Settings";
 import MyPackagePage from "./pages/MyPackagePage";
+import Account from "./pages/Account";
 import { EnhancedAIAssistant } from "./components/ai/EnhancedAIAssistant";
 import { AppProvider, useUser } from "./lib/store";
 import { LoginForm } from "./components/auth/LoginForm";
@@ -187,6 +188,7 @@ function AuthenticatedApp() {
           <Route path="/settings/connect-bank" element={<Settings />} />
           <Route path="/settings/payment-gateways" element={<Settings />} />
           <Route path="/my-package" element={<MyPackagePage />} />
+          <Route path="/account" element={<Account />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

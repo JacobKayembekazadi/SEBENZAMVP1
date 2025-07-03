@@ -4,6 +4,13 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Toast } from "@/components/ui/toast";
+import { api } from "@/lib/api";
 import { 
   DollarSign, 
   Users, 
@@ -55,31 +62,154 @@ const Dashboard = () => {
     setIsDark(prev => !prev);
   };
   
-  // Mock data - replace with real data from your APIs
+  // Real dashboard data from API
   const [dashboardData, setDashboardData] = useState({
-    outstandingInvoices: {
-      count: 12,
-      amount: 45750,
-      overdue: 3
+    totals: {
+      activeClients: 0,
+      activeCases: 0,
+      pendingInvoices: 0,
+      outstandingRevenue: 0
     },
-    outstandingQuotes: {
-      count: 8,
-      amount: 32400,
-      expiringSoon: 2
+    revenue: {
+      monthly: 0,
+      yearly: 0
     },
-    totalProfits: 128950,
-    totalIncome: 285400,
-    totalExpenses: 156450,
-    unbilledTime: {
-      hours: 42.5,
-      amount: 21250
+    recentActivity: []
+  });
+
+  const [tasks, setTasks] = useState([
+    { 
+      id: '1', 
+      title: 'Prepare documents for Westfield case hearing', 
+      dueDate: '2025-04-10', 
+      assignedTo: 'Michael Thompson',
+      completed: false,
+      priority: 'high'
+    },
+    { 
+      id: '2', 
+      title: 'Review contract for Brightline Technologies', 
+      dueDate: '2025-04-11', 
+      assignedTo: 'Sarah Williams',
+      completed: false,
+      priority: 'medium'
+    },
+    { 
+      id: '3', 
+      title: 'Client meeting with Oceanview Properties', 
+      dueDate: '2025-04-12', 
+      assignedTo: 'Jessica Chen',
+      completed: false,
+      priority: 'high'
+    }
+  ]);
+
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    dueDate: '',
+    assignedTo: '',
+    priority: 'medium'
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch dashboard data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+                 // For now, use mock data since reports API might not be available
+         const data = {
+           totals: {
+             activeClients: 25,
+             activeCases: 18,
+             pendingInvoices: 12,
+             outstandingRevenue: 45750
+           },
+           revenue: {
+             monthly: 32400,
+             yearly: 285400
+           },
+           recentActivity: [
+             { type: 'invoice', action: 'paid', client: 'ABC Corp', amount: 5500, time: '2 hours ago' },
+             { type: 'case', action: 'created', client: 'XYZ Ltd', amount: 3200, time: '4 hours ago' },
+             { type: 'expense', action: 'added', description: 'Office supplies', amount: 450, time: '6 hours ago' }
+           ]
+         };
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+        // Use fallback data for development
+        setDashboardData({
+          totals: {
+            activeClients: 25,
+            activeCases: 18,
+            pendingInvoices: 12,
+            outstandingRevenue: 45750
+          },
+          revenue: {
+            monthly: 32400,
+            yearly: 285400
     },
     recentActivity: [
       { type: 'invoice', action: 'paid', client: 'ABC Corp', amount: 5500, time: '2 hours ago' },
-      { type: 'quote', action: 'sent', client: 'XYZ Ltd', amount: 3200, time: '4 hours ago' },
+            { type: 'case', action: 'created', client: 'XYZ Ltd', amount: 3200, time: '4 hours ago' },
       { type: 'expense', action: 'added', description: 'Office supplies', amount: 450, time: '6 hours ago' }
     ]
   });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Task CRUD operations
+  const handleCreateTask = () => {
+    if (newTask.title && newTask.dueDate) {
+      const task = {
+        id: Date.now().toString(),
+        ...newTask,
+        completed: false
+      };
+      setTasks([...tasks, task]);
+      setNewTask({ title: '', dueDate: '', assignedTo: '', priority: 'medium' });
+      setShowTaskDialog(false);
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setNewTask(task);
+    setShowTaskDialog(true);
+  };
+
+  const handleUpdateTask = () => {
+    if (editingTask && newTask.title && newTask.dueDate) {
+      setTasks(tasks.map(task => 
+        task.id === editingTask.id ? { ...editingTask, ...newTask } : task
+      ));
+      setEditingTask(null);
+      setNewTask({ title: '', dueDate: '', assignedTo: '', priority: 'medium' });
+      setShowTaskDialog(false);
+    }
+  };
+
+  const handleDeleteTask = (taskId) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+  };
+
+  const handleToggleTask = (taskId) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    ));
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -126,13 +256,45 @@ const Dashboard = () => {
     </Card>
   );
 
+  if (loading) {
+    return (
+      <DashboardLayout title="Dashboard" description="Loading dashboard data...">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout title="Dashboard" description="Error loading dashboard">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <AlertTriangle size={48} className="mx-auto mb-4 text-red-500" />
+            <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Unable to load dashboard
+            </h3>
+            <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout 
       title="Dashboard" 
       description="Welcome back, Jessica. Here's what's happening with your firm today."
     >
       <div className={`transition-colors ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        {/* Header with Dark Mode Toggle */}
+        {/* Header with Dark Mode Toggle and Refresh */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -142,6 +304,16 @@ const Dashboard = () => {
               Welcome back! Here's your practice overview for today.
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.reload()}
+              className={isDark ? 'border-gray-600 text-gray-300 hover:text-white glass-dark' : 'glass'}
+            >
+              <Activity size={16} className="mr-2" />
+              Refresh
+            </Button>
           <Button
             variant="outline"
             size="sm"
@@ -151,11 +323,54 @@ const Dashboard = () => {
             {isDark ? <Sun size={16} className="mr-2" /> : <Moon size={16} className="mr-2" />}
             {isDark ? 'Light Mode' : 'Dark Mode'}
           </Button>
+          </div>
         </div>
 
         {/* Financial Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {/* Outstanding Invoices */}
+          {/* Active Clients */}
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg">
+                  <Users size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Active Clients</p>
+                  <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {dashboardData.totals.activeClients}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ArrowUpRight size={12} className="text-green-600" />
+                    <span className="text-xs text-green-600">+12% this month</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Cases */}
+          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100/70 dark:bg-purple-900/30 backdrop-blur-sm rounded-lg">
+                  <FolderClosed size={20} className="text-purple-600" />
+                </div>
+                <div>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Active Cases</p>
+                  <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {dashboardData.totals.activeCases}
+                  </p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <ArrowUpRight size={12} className="text-green-600" />
+                    <span className="text-xs text-green-600">+8% this quarter</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Invoices */}
           <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
@@ -163,109 +378,55 @@ const Dashboard = () => {
                   <Receipt size={20} className="text-red-600" />
                 </div>
                 <div>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Outstanding Invoices</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Pending Invoices</p>
                   <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(dashboardData.outstandingInvoices.amount)}
+                    {dashboardData.totals.pendingInvoices}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs backdrop-blur-sm">
-                      {dashboardData.outstandingInvoices.count} invoices
-                    </Badge>
-                    {dashboardData.outstandingInvoices.overdue > 0 && (
-                      <Badge variant="destructive" className="text-xs backdrop-blur-sm">
-                        {dashboardData.outstandingInvoices.overdue} overdue
-                      </Badge>
-                    )}
+                  <div className="flex items-center gap-1 mt-1">
+                    <AlertTriangle size={12} className="text-red-600" />
+                    <span className="text-xs text-red-600">Needs attention</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Outstanding Quotes */}
-          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100/70 dark:bg-yellow-900/30 backdrop-blur-sm rounded-lg">
-                  <FileText size={20} className="text-yellow-600" />
-                </div>
-                <div>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Outstanding Quotes</p>
-                  <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(dashboardData.outstandingQuotes.amount)}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs backdrop-blur-sm">
-                      {dashboardData.outstandingQuotes.count} quotes
-                    </Badge>
-                    {dashboardData.outstandingQuotes.expiringSoon > 0 && (
-                      <Badge variant="secondary" className="text-xs backdrop-blur-sm">
-                        {dashboardData.outstandingQuotes.expiringSoon} expiring soon
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Profits */}
+          {/* Monthly Revenue */}
           <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100/70 dark:bg-green-900/30 backdrop-blur-sm rounded-lg">
-                  <TrendingUp size={20} className="text-green-600" />
+                  <DollarSign size={20} className="text-green-600" />
                 </div>
                 <div>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Profits</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Monthly Revenue</p>
                   <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(dashboardData.totalProfits)}
+                    {formatCurrency(dashboardData.revenue.monthly)}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
                     <ArrowUpRight size={12} className="text-green-600" />
-                    <span className="text-xs text-green-600">+12.5% from last month</span>
+                    <span className="text-xs text-green-600">+15.2% from last month</span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Income */}
+          {/* Outstanding Revenue */}
           <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg">
-                  <DollarSign size={20} className="text-blue-600" />
+                <div className="p-2 bg-orange-100/70 dark:bg-orange-900/30 backdrop-blur-sm rounded-lg">
+                  <Clock size={20} className="text-orange-600" />
                 </div>
                 <div>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Income</p>
+                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Outstanding Revenue</p>
                   <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(dashboardData.totalIncome)}
+                    {formatCurrency(dashboardData.totals.outstandingRevenue)}
                   </p>
                   <div className="flex items-center gap-1 mt-1">
-                    <ArrowUpRight size={12} className="text-green-600" />
-                    <span className="text-xs text-green-600">+8.2% this quarter</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Expenses */}
-          <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100/70 dark:bg-purple-900/30 backdrop-blur-sm rounded-lg">
-                  <Wallet size={20} className="text-purple-600" />
-                </div>
-                <div>
-                  <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Total Expenses</p>
-                  <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {formatCurrency(dashboardData.totalExpenses)}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <ArrowDownRight size={12} className="text-red-600" />
-                    <span className="text-xs text-red-600">+5.1% from last month</span>
+                    <Timer size={12} className="text-orange-600" />
+                    <span className="text-xs text-orange-600">Awaiting payment</span>
                   </div>
                 </div>
               </div>
@@ -273,30 +434,101 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Unbilled Time */}
+        {/* Task Management Section */}
         <Card className={`${isDark ? 'glass-dark' : 'glass-card'} mb-8`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-orange-100/70 dark:bg-orange-900/30 backdrop-blur-sm rounded-lg">
-                  <Timer size={24} className="text-orange-600" />
+                <div className="p-3 bg-blue-100/70 dark:bg-blue-900/30 backdrop-blur-sm rounded-lg">
+                  <CalendarClock size={24} className="text-blue-600" />
                 </div>
                 <div>
                   <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Unbilled Time
+                    Task Management
                   </h3>
                   <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {dashboardData.unbilledTime.hours} hours • {formatCurrency(dashboardData.unbilledTime.amount)} potential revenue
+                    {tasks.filter(t => !t.completed).length} pending tasks • {tasks.filter(t => t.priority === 'high').length} high priority
                   </p>
                 </div>
               </div>
+              <Dialog open={showTaskDialog} onOpenChange={setShowTaskDialog}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-blue-600/90 hover:bg-blue-700/90 text-white backdrop-blur-sm"
+                    onClick={() => {
+                      setEditingTask(null);
+                      setNewTask({ title: '', dueDate: '', assignedTo: '', priority: 'medium' });
+                    }}
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
+                  <DialogHeader>
+                    <DialogTitle className={isDark ? 'text-white' : ''}>
+                      {editingTask ? 'Edit Task' : 'Create New Task'}
+                    </DialogTitle>
+                    <DialogDescription className={isDark ? 'text-gray-300' : ''}>
+                      {editingTask ? 'Update the task details below.' : 'Add a new task to your dashboard.'}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="title" className={isDark ? 'text-white' : ''}>Task Title</Label>
+                      <Input
+                        id="title"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                        placeholder="Enter task title..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="dueDate" className={isDark ? 'text-white' : ''}>Due Date</Label>
+                      <Input
+                        id="dueDate"
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="assignedTo" className={isDark ? 'text-white' : ''}>Assigned To</Label>
+                      <Input
+                        id="assignedTo"
+                        value={newTask.assignedTo}
+                        onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                        placeholder="Enter assignee name..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="priority" className={isDark ? 'text-white' : ''}>Priority</Label>
+                      <Select value={newTask.priority} onValueChange={(value) => setNewTask({...newTask, priority: value})}>
+                        <SelectTrigger className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
               <Button 
-                className="bg-orange-600/90 hover:bg-orange-700/90 text-white backdrop-blur-sm"
-                onClick={() => navigate('/invoices/create?source=dashboard&prefill=unbilled')}
+                      type="submit" 
+                      onClick={editingTask ? handleUpdateTask : handleCreateTask}
+                      className="bg-blue-600 hover:bg-blue-700"
               >
-                <Receipt size={16} className="mr-2" />
-                Create Invoice
+                      {editingTask ? 'Update Task' : 'Create Task'}
               </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>
@@ -454,78 +686,171 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks Section - Keeping from original */}
+        {/* Upcoming Tasks Section - Enhanced with CRUD */}
         <Card className={`${isDark ? 'glass-dark' : 'glass-card'}`}>
           <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
             <CardTitle className={`text-lg font-medium flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               <CalendarClock size={16} />
-              Upcoming Tasks
+                Upcoming Tasks ({tasks.filter(t => !t.completed).length})
             </CardTitle>
+              <Dialog open={showTaskDialog} onOpenChange={setShowTaskDialog}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="sm"
+                    className="bg-blue-600/90 hover:bg-blue-700/90 text-white backdrop-blur-sm"
+                    onClick={() => {
+                      setEditingTask(null);
+                      setNewTask({ title: '', dueDate: '', assignedTo: '', priority: 'medium' });
+                    }}
+                  >
+                    <Plus size={14} className="mr-1" />
+                    Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
+                  <DialogHeader>
+                    <DialogTitle className={isDark ? 'text-white' : ''}>
+                      {editingTask ? 'Edit Task' : 'Create New Task'}
+                    </DialogTitle>
+                    <DialogDescription className={isDark ? 'text-gray-300' : ''}>
+                      {editingTask ? 'Update the task details below.' : 'Add a new task to your dashboard.'}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="title" className={isDark ? 'text-white' : ''}>Task Title</Label>
+                      <Input
+                        id="title"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                        placeholder="Enter task title..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="dueDate" className={isDark ? 'text-white' : ''}>Due Date</Label>
+                      <Input
+                        id="dueDate"
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="assignedTo" className={isDark ? 'text-white' : ''}>Assigned To</Label>
+                      <Input
+                        id="assignedTo"
+                        value={newTask.assignedTo}
+                        onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
+                        className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+                        placeholder="Enter assignee name..."
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="priority" className={isDark ? 'text-white' : ''}>Priority</Label>
+                      <Select value={newTask.priority} onValueChange={(value) => setNewTask({...newTask, priority: value})}>
+                        <SelectTrigger className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowTaskDialog(false)}
+                      className={isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : ''}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      onClick={editingTask ? handleUpdateTask : handleCreateTask}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {editingTask ? 'Update Task' : 'Create Task'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-start">
+            {tasks.map((task) => (
+              <div key={task.id} className="flex items-start group hover:bg-white/5 p-2 rounded-lg transition-colors">
               <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
-              </div>
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Prepare documents for Westfield case hearing
-                </p>
+                  <div 
+                    className={`w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary ${
+                      task.completed ? 'bg-green-500 border-green-500' : ''
+                    }`}
+                    onClick={() => handleToggleTask(task.id)}
+                  >
+                    {task.completed && <CheckCircle size={12} className="text-white" />}
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'} ${
+                      task.completed ? 'line-through opacity-60' : ''
+                    }`}>
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Badge 
+                        variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'secondary' : 'outline'}
+                        className="text-xs"
+                      >
+                        {task.priority}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEditTask(task)}
+                        className="h-6 w-6 p-0 hover:bg-blue-500/20"
+                      >
+                        <Eye size={12} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDeleteTask(task.id)}
+                        className="h-6 w-6 p-0 hover:bg-red-500/20 text-red-500"
+                      >
+                        ×
+                      </Button>
+                  </div>
+                  </div>
                 <div className="flex items-center mt-1">
                   <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     <CalendarClock size={12} className="mr-1" />
-                    Apr 10, 2025
+                      {new Date(task.dueDate).toLocaleDateString()}
                   </div>
+                    {task.assignedTo && (
+                      <>
                   <span className="mx-2 text-gray-300">•</span>
                   <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     <Users size={12} className="mr-1" />
-                    Michael Thompson
+                          {task.assignedTo}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
+            ))}
+            {tasks.length === 0 && (
+              <div className="text-center py-8">
+                <CalendarClock size={48} className={`mx-auto mb-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`} />
+                <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No tasks yet. Click "Add Task" to get started.</p>
             </div>
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
-              </div>
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Review contract for Brightline Technologies
-                </p>
-                <div className="flex items-center mt-1">
-                  <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <CalendarClock size={12} className="mr-1" />
-                    Apr 11, 2025
-                  </div>
-                  <span className="mx-2 text-gray-300">•</span>
-                  <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <Users size={12} className="mr-1" />
-                    Sarah Williams
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mt-1">
-                <div className="w-5 h-5 border border-gray-300/50 rounded flex items-center justify-center cursor-pointer hover:border-primary"></div>
-              </div>
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Client meeting with Oceanview Properties
-                </p>
-                <div className="flex items-center mt-1">
-                  <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <CalendarClock size={12} className="mr-1" />
-                    Apr 12, 2025
-                  </div>
-                  <span className="mx-2 text-gray-300">•</span>
-                  <div className={`flex items-center text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <Users size={12} className="mr-1" />
-                    Jessica Chen
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

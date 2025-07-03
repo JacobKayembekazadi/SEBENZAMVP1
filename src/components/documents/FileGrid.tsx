@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Clock, MoreVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,9 +25,11 @@ interface FileData {
 
 interface FileGridProps {
   files: FileData[];
+  onDelete?: (fileId: number) => void;
+  onEdit?: (file: FileData) => void;
 }
 
-export const FileGrid = ({ files }: FileGridProps) => {
+export const FileGrid = ({ files, onDelete, onEdit }: FileGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {files.map((file) => (
@@ -53,7 +54,10 @@ export const FileGrid = ({ files }: FileGridProps) => {
                     <span>Summarize with AI</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600">
+                  <DropdownMenuItem onClick={() => onEdit && onEdit(file)}>
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete && onDelete(file.id)}>
                     <span>Delete</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

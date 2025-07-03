@@ -1,4 +1,3 @@
-
 import React from "react";
 import { MoreVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,9 +32,11 @@ interface FileData {
 
 interface FileListProps {
   files: FileData[];
+  onDelete?: (fileId: number) => void;
+  onEdit?: (file: FileData) => void;
 }
 
-export const FileList = ({ files }: FileListProps) => {
+export const FileList = ({ files, onDelete, onEdit }: FileListProps) => {
   return (
     <Card>
       <CardContent className="p-0">
@@ -81,7 +82,10 @@ export const FileList = ({ files }: FileListProps) => {
                         <span>Summarize with AI</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem className="text-blue-600" onClick={() => onEdit && onEdit(file)}>
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600" onClick={() => onDelete && onDelete(file.id)}>
                         <span>Delete</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>

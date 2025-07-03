@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Search, Bell, Menu, User } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,6 +21,8 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, description }: DashboardLayoutProps) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -28,6 +32,15 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    // In a real app, this would call the logout API
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    navigate('/login');
   };
 
   return (
@@ -99,11 +112,19 @@ export function DashboardLayout({ children, title, description }: DashboardLayou
                 <DropdownMenuContent align="end" className="w-56 glass-dropdown">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account')} className="cursor-pointer">
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account?tab=billing')} className="cursor-pointer">
+                    Billing
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Log out</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    Log out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

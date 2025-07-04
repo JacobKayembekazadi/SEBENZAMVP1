@@ -159,13 +159,55 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSave }: InvoiceDi
 
   // Load existing invoice data
   useEffect(() => {
-    if (invoice) {
+    if (invoice && open) {
       setFormData({
         ...invoice,
-        customFields: invoice.customFields || formData.customFields
+        customFields: invoice.customFields || {
+          itemLabel: 'Description',
+          quantityLabel: 'Quantity',
+          rateLabel: 'Rate',
+          showBankingDetails: false,
+          showWeight: false
+        }
       });
-    } else {
-      // Check for auto-saved draft
+    } else if (!invoice && open) {
+      // Reset to default for new invoice
+      setFormData({
+        number: '',
+        clientId: '',
+        clientName: '',
+        caseId: '',
+        caseName: '',
+        date: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'draft',
+        items: [
+          { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
+        ],
+        taxRate: 8.5,
+        taxAmount: 0,
+        discountRate: 0,
+        discountAmount: 0,
+        subtotal: 0,
+        total: 0,
+        notes: '',
+        terms: 'Payment is due within 30 days of the invoice date.',
+        template: 'professional',
+        hasESignature: false,
+        attachments: [],
+        paymentSchedule: [],
+        shippingAddress: '',
+        customFields: {
+          itemLabel: 'Description',
+          quantityLabel: 'Quantity',
+          rateLabel: 'Rate',
+          showBankingDetails: false,
+          showWeight: false
+        },
+        bankingDetails: ''
+      });
+      
+      // Check for auto-saved draft only for new invoices
       const savedDraft = localStorage.getItem('invoice_draft_latest');
       if (savedDraft) {
         try {
@@ -180,7 +222,7 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSave }: InvoiceDi
         }
       }
     }
-  }, [invoice]);
+  }, [invoice, open]);
 
   const calculateTotals = () => {
     const subtotal = formData.items.reduce((sum, item) => sum + item.amount, 0);
@@ -766,6 +808,7 @@ export function InvoiceDialog({ open, onOpenChange, invoice, onSave }: InvoiceDi
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
+                      aria-label="Upload invoice attachments"
                     />
                     <Button
                       variant="outline"

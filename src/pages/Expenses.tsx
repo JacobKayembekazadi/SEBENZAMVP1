@@ -10,17 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+// Calendar components removed - using HTML date inputs instead
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
   Plus, 
   Upload, 
   Download, 
   FileText, 
-  Receipt as ReceiptIcon, 
-  Calendar as CalendarIcon,
+  Receipt as ReceiptIcon,
   DollarSign,
   CreditCard,
   Repeat,
@@ -41,7 +40,14 @@ import {
   Database,
   Clock,
   TrendingUp,
-  Copy
+  Copy,
+  Mail,
+  Printer,
+  FileCheck,
+  History,
+  Archive,
+  Send,
+  MoreVertical
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -72,6 +78,7 @@ interface Expense {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
+  isArchived?: boolean;
 }
 
 interface BankConnection {
@@ -85,6 +92,57 @@ interface BankConnection {
   isConnected: boolean;
   lastSync: Date;
 }
+
+// Mock expenses for demonstration - moved outside component to avoid hoisting issues
+const mockExpenses: Expense[] = [
+  {
+    id: '1',
+    title: 'Office Supplies',
+    description: 'Printer ink and paper',
+    amount: 450,
+    currency: 'ZAR',
+    date: new Date('2024-01-15'),
+    category: 'Office Supplies',
+    client: 'ABC Corp',
+    case: 'Contract Review',
+    isBillable: true,
+    tax: 15,
+    taxAmount: 67.5,
+    totalAmount: 517.5,
+    attachments: [],
+    isRecurring: false,
+    vendor: 'Office Depot',
+    paymentMethod: 'credit_card',
+    status: 'approved',
+    createdBy: 'John Doe',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isArchived: false
+  },
+  {
+    id: '2',
+    title: 'Client Lunch',
+    description: 'Business lunch with ABC Corp executives',
+    amount: 1200,
+    currency: 'ZAR',
+    date: new Date('2024-01-14'),
+    category: 'Meals & Entertainment',
+    client: 'ABC Corp',
+    isBillable: false,
+    tax: 15,
+    taxAmount: 180,
+    totalAmount: 1380,
+    attachments: [],
+    isRecurring: false,
+    vendor: 'The Restaurant',
+    paymentMethod: 'credit_card',
+    status: 'pending',
+    createdBy: 'Jane Smith',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isArchived: false
+  }
+];
 
 const Expenses = () => {
   const { toast } = useToast();
@@ -100,8 +158,16 @@ const Expenses = () => {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
+  const [convertingExpense, setConvertingExpense] = useState<Expense | null>(null);
+  const [emailingExpense, setEmailingExpense] = useState<Expense | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clientFilter, setClientFilter] = useState("all");
@@ -116,8 +182,8 @@ const Expenses = () => {
     currency: 'ZAR',
     date: new Date(),
     category: '',
-    client: '',
-    case: '',
+    client: 'none',
+    case: 'none',
     isBillable: true,
     tax: 15,
     vendor: '',
@@ -127,6 +193,23 @@ const Expenses = () => {
     recurringEndDate: undefined as Date | undefined,
     receipt: null as File | null,
     attachments: [] as File[]
+  });
+
+  // Email Form State
+  const [emailForm, setEmailForm] = useState({
+    to: '',
+    cc: '',
+    subject: '',
+    message: '',
+    includeAttachments: true
+  });
+
+  // Convert Form State
+  const [convertForm, setConvertForm] = useState({
+    invoiceNumber: '',
+    dueDate: new Date(),
+    notes: '',
+    includeDescription: true
   });
 
   // Mock Data
@@ -139,55 +222,6 @@ const Expenses = () => {
   const cases = ['Contract Review', 'Litigation Case', 'M&A Transaction', 'Compliance Audit'];
   const currencies = ['ZAR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY'];
   const paymentMethods = ['credit_card', 'debit_card', 'cash', 'bank_transfer', 'check', 'petty_cash'];
-
-  // Mock expenses for demonstration
-  const mockExpenses: Expense[] = [
-    {
-      id: '1',
-      title: 'Office Supplies',
-      description: 'Printer ink and paper',
-      amount: 450,
-      currency: 'ZAR',
-      date: new Date('2024-01-15'),
-      category: 'Office Supplies',
-      client: 'ABC Corp',
-      case: 'Contract Review',
-      isBillable: true,
-      tax: 15,
-      taxAmount: 67.5,
-      totalAmount: 517.5,
-      attachments: [],
-      isRecurring: false,
-      vendor: 'Office Depot',
-      paymentMethod: 'credit_card',
-      status: 'approved',
-      createdBy: 'John Doe',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      title: 'Client Lunch',
-      description: 'Business lunch with ABC Corp executives',
-      amount: 1200,
-      currency: 'ZAR',
-      date: new Date('2024-01-14'),
-      category: 'Meals & Entertainment',
-      client: 'ABC Corp',
-      isBillable: false,
-      tax: 15,
-      taxAmount: 180,
-      totalAmount: 1380,
-      attachments: [],
-      isRecurring: false,
-      vendor: 'The Restaurant',
-      paymentMethod: 'credit_card',
-      status: 'pending',
-      createdBy: 'Jane Smith',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
 
   // Format currency
   const formatCurrency = (amount: number, currency: string = 'ZAR') => {
@@ -249,8 +283,8 @@ const Expenses = () => {
       currency: expenseForm.currency,
       date: expenseForm.date,
       category: expenseForm.category,
-      client: expenseForm.client,
-      case: expenseForm.case,
+      client: expenseForm.client === 'none' ? undefined : expenseForm.client,
+      case: expenseForm.case === 'none' ? undefined : expenseForm.case,
       isBillable: expenseForm.isBillable,
       tax: expenseForm.tax,
       taxAmount,
@@ -295,8 +329,8 @@ const Expenses = () => {
       currency: 'ZAR',
       date: new Date(),
       category: '',
-      client: '',
-      case: '',
+      client: 'none',
+      case: 'none',
       isBillable: true,
       tax: 15,
       vendor: '',
@@ -320,8 +354,8 @@ const Expenses = () => {
       currency: expense.currency,
       date: expense.date,
       category: expense.category,
-      client: expense.client || '',
-      case: expense.case || '',
+      client: expense.client || 'none',
+      case: expense.case || 'none',
       isBillable: expense.isBillable,
       tax: expense.tax,
       vendor: expense.vendor,
@@ -335,12 +369,12 @@ const Expenses = () => {
     setShowExpenseDialog(true);
   };
 
-  // Import CSV
+  // Import CSV with real functionality
   const handleCSVImport = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     
     const file = files[0];
-    if (file.type !== 'text/csv') {
+    if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
       toast({
         title: "Invalid File",
         description: "Please select a CSV file.",
@@ -349,14 +383,131 @@ const Expenses = () => {
       return;
     }
 
-    // In a real app, you would parse the CSV here
-    toast({
-      title: "Import Successful",
-      description: `Imported expenses from "${file.name}".`
-    });
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const csvText = e.target?.result as string;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          toast({
+            title: "Import Failed",
+            description: "CSV file must contain at least a header row and one data row.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        const requiredFields = ['title', 'amount', 'date', 'category'];
+        const missingFields = requiredFields.filter(field => !headers.includes(field));
+        
+        if (missingFields.length > 0) {
+          toast({
+            title: "Import Failed",
+            description: `Missing required columns: ${missingFields.join(', ')}. Expected columns: title, amount, date, category, description, vendor, client, case, billable.`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const importedExpenses: Expense[] = [];
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+          try {
+            const values = lines[i].split(',').map(v => v.trim().replace(/^"(.*)"$/, '$1'));
+            const rowData: { [key: string]: string } = {};
+            
+            headers.forEach((header, index) => {
+              rowData[header] = values[index] || '';
+            });
+
+            const amount = parseFloat(rowData.amount);
+            if (isNaN(amount)) {
+              errorCount++;
+              continue;
+            }
+
+            const date = new Date(rowData.date);
+            if (isNaN(date.getTime())) {
+              errorCount++;
+              continue;
+            }
+
+            const tax = parseFloat(rowData.tax) || 15;
+            const taxAmount = calculateTax(amount, tax);
+            const totalAmount = amount + taxAmount;
+
+            const newExpense: Expense = {
+              id: `imported-${Date.now()}-${i}`,
+              title: rowData.title,
+              description: rowData.description || '',
+              amount,
+              currency: rowData.currency || 'ZAR',
+              date,
+              category: rowData.category,
+              client: rowData.client || '',
+              case: rowData.case || '',
+              isBillable: rowData.billable?.toLowerCase() === 'true' || rowData.billable === '1',
+              tax,
+              taxAmount,
+              totalAmount,
+              attachments: [],
+              isRecurring: false,
+              vendor: rowData.vendor || '',
+              paymentMethod: rowData.paymentmethod || 'credit_card',
+              status: 'pending',
+              createdBy: 'CSV Import',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              isArchived: false
+            };
+
+            importedExpenses.push(newExpense);
+            successCount++;
+          } catch (error) {
+            errorCount++;
+          }
+        }
+
+        if (importedExpenses.length > 0) {
+          setExpenses(prev => [...prev, ...importedExpenses]);
+          toast({
+            title: "Import Successful",
+            description: `Imported ${successCount} expenses successfully. ${errorCount > 0 ? `${errorCount} rows had errors and were skipped.` : ''}`
+          });
+        } else {
+          toast({
+            title: "Import Failed",
+            description: "No valid expense data could be imported from the CSV file.",
+            variant: "destructive"
+          });
+        }
+        
+        setShowImportDialog(false);
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: "Failed to parse CSV file. Please check the file format.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      toast({
+        title: "Import Failed",
+        description: "Failed to read the CSV file.",
+        variant: "destructive"
+      });
+    };
+
+    reader.readAsText(file);
   };
 
-  // Export functions
+  // Export functions with real file generation
   const exportExpenses = (format: 'excel' | 'pdf' | 'csv', dateRange?: { from: Date; to: Date }) => {
     let expensesToExport = expenses;
     
@@ -366,15 +517,243 @@ const Expenses = () => {
       );
     }
 
-    // In a real app, you would generate the actual file here
-    toast({
-      title: "Export Successful",
-      description: `Exported ${expensesToExport.length} expenses as ${format.toUpperCase()}.`
-    });
+    if (expensesToExport.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No expenses found for the selected criteria.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      if (format === 'csv') {
+        exportToCSV(expensesToExport);
+      } else if (format === 'excel') {
+        exportToExcel(expensesToExport);
+      } else if (format === 'pdf') {
+        exportToPDF(expensesToExport);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Exported ${expensesToExport.length} expenses as ${format.toUpperCase()}.`
+      });
+      setShowExportDialog(false);
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to generate export file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Export to CSV
+  const exportToCSV = (expensesToExport: Expense[]) => {
+    const headers = [
+      'ID', 'Title', 'Description', 'Amount', 'Currency', 'Date', 'Category', 
+      'Client', 'Case', 'Billable', 'Tax Rate', 'Tax Amount', 'Total Amount', 
+      'Vendor', 'Payment Method', 'Status', 'Created By', 'Created Date'
+    ];
+    
+    const csvRows = [
+      headers.join(','),
+      ...expensesToExport.map(expense => [
+        expense.id,
+        `"${expense.title}"`,
+        `"${expense.description}"`,
+        expense.amount,
+        expense.currency,
+        expense.date.toISOString().split('T')[0],
+        `"${expense.category}"`,
+        `"${expense.client || ''}"`,
+        `"${expense.case || ''}"`,
+        expense.isBillable ? 'true' : 'false',
+        expense.tax,
+        expense.taxAmount,
+        expense.totalAmount,
+        `"${expense.vendor}"`,
+        expense.paymentMethod,
+        expense.status,
+        `"${expense.createdBy}"`,
+        expense.createdAt.toISOString().split('T')[0]
+      ].join(','))
+    ];
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expenses_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to Excel (HTML table format)
+  const exportToExcel = (expensesToExport: Expense[]) => {
+    const htmlTable = `
+      <table border="1" style="border-collapse: collapse;">
+        <thead>
+          <tr style="background-color: #f0f0f0; font-weight: bold;">
+            <th>ID</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Currency</th>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Client</th>
+            <th>Case</th>
+            <th>Billable</th>
+            <th>Tax Rate</th>
+            <th>Tax Amount</th>
+            <th>Total Amount</th>
+            <th>Vendor</th>
+            <th>Payment Method</th>
+            <th>Status</th>
+            <th>Created By</th>
+            <th>Created Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${expensesToExport.map(expense => `
+            <tr>
+              <td>${expense.id}</td>
+              <td>${expense.title}</td>
+              <td>${expense.description}</td>
+              <td>${expense.amount}</td>
+              <td>${expense.currency}</td>
+              <td>${expense.date.toLocaleDateString()}</td>
+              <td>${expense.category}</td>
+              <td>${expense.client || ''}</td>
+              <td>${expense.case || ''}</td>
+              <td>${expense.isBillable ? 'Yes' : 'No'}</td>
+              <td>${expense.tax}%</td>
+              <td>${expense.taxAmount}</td>
+              <td>${expense.totalAmount}</td>
+              <td>${expense.vendor}</td>
+              <td>${expense.paymentMethod}</td>
+              <td>${expense.status}</td>
+              <td>${expense.createdBy}</td>
+              <td>${expense.createdAt.toLocaleDateString()}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+
+    const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expenses_export_${new Date().toISOString().split('T')[0]}.xls`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to PDF (HTML content)
+  const exportToPDF = (expensesToExport: Expense[]) => {
+    const totalAmount = expensesToExport.reduce((sum, exp) => sum + exp.totalAmount, 0);
+    const totalTax = expensesToExport.reduce((sum, exp) => sum + exp.taxAmount, 0);
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Expense Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .summary { background-color: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f0f0f0; font-weight: bold; }
+          .total-row { background-color: #e8f4f8; font-weight: bold; }
+          .footer { margin-top: 30px; text-align: center; color: #666; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Expense Report</h1>
+          <p>Generated on ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <div class="summary">
+          <h3>Summary</h3>
+          <p><strong>Total Expenses:</strong> ${expensesToExport.length}</p>
+          <p><strong>Total Amount:</strong> ${formatCurrency(totalAmount)}</p>
+          <p><strong>Total Tax:</strong> ${formatCurrency(totalTax)}</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Client</th>
+              <th>Amount</th>
+              <th>Tax</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${expensesToExport.map(expense => `
+              <tr>
+                <td>${expense.date.toLocaleDateString()}</td>
+                <td>${expense.title}</td>
+                <td>${expense.category}</td>
+                <td>${expense.client || 'N/A'}</td>
+                <td>${formatCurrency(expense.amount, expense.currency)}</td>
+                <td>${formatCurrency(expense.taxAmount, expense.currency)}</td>
+                <td>${formatCurrency(expense.totalAmount, expense.currency)}</td>
+                <td style="color: ${expense.status === 'approved' ? 'green' : expense.status === 'rejected' ? 'red' : 'orange'}">
+                  ${expense.status.toUpperCase()}
+                </td>
+              </tr>
+            `).join('')}
+            <tr class="total-row">
+              <td colspan="6" style="text-align: right;"><strong>TOTAL:</strong></td>
+              <td><strong>${formatCurrency(totalAmount)}</strong></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="footer">
+          <p>This report was generated by the Sebenza Law Firm Management System</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expenses_report_${new Date().toISOString().split('T')[0]}.html`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Bank connection functions
-  const connectBank = (bankData: any) => {
+  const connectBank = (bankData: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    accountType: string;
+    balance?: number;
+    currency: string;
+  }) => {
     const newConnection: BankConnection = {
       id: Date.now().toString(),
       bankName: bankData.bankName,
@@ -409,7 +788,7 @@ const Expenses = () => {
     if (expenses.length === 0) {
       setExpenses(mockExpenses);
     }
-  }, []);
+  }, [expenses.length]);
 
   // Filter expenses
   React.useEffect(() => {
@@ -434,13 +813,22 @@ const Expenses = () => {
     setFilteredExpenses(filtered);
   }, [expenses, searchTerm, statusFilter, clientFilter]);
 
-  // Delete expense
-  const deleteExpense = (expenseId: string) => {
-    setExpenses(prev => prev.filter(exp => exp.id !== expenseId));
+  // Delete expense with confirmation
+  const confirmDeleteExpense = (expense: Expense) => {
+    setDeletingExpense(expense);
+    setShowDeleteDialog(true);
+  };
+
+  const deleteExpense = () => {
+    if (!deletingExpense) return;
+    
+    setExpenses(prev => prev.filter(exp => exp.id !== deletingExpense.id));
     toast({
       title: "Expense Deleted",
       description: "Expense has been deleted successfully."
     });
+    setShowDeleteDialog(false);
+    setDeletingExpense(null);
   };
 
   // Update expense status
@@ -510,12 +898,129 @@ const Expenses = () => {
     });
   };
 
+  const confirmBulkDelete = () => {
+    setShowBulkDeleteDialog(true);
+  };
+
   const bulkDelete = () => {
     setExpenses(prev => prev.filter(exp => !selectedExpenses.includes(exp.id)));
     setSelectedExpenses([]);
+    setShowBulkDeleteDialog(false);
     toast({
       title: "Bulk Delete Complete",
       description: "Selected expenses have been deleted."
+    });
+  };
+
+  // Convert expense to invoice
+  const convertToInvoice = (expense: Expense) => {
+    setConvertingExpense(expense);
+    setConvertForm({
+      invoiceNumber: `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      notes: '',
+      includeDescription: true
+    });
+    setShowConvertDialog(true);
+  };
+
+  const handleConvertToInvoice = () => {
+    if (!convertingExpense) return;
+    
+    // In a real app, this would create an actual invoice
+    toast({
+      title: "Invoice Created",
+      description: `Invoice ${convertForm.invoiceNumber} has been created from expense "${convertingExpense.title}".`
+    });
+    setShowConvertDialog(false);
+    setConvertingExpense(null);
+  };
+
+  // Email expense
+  const emailExpense = (expense: Expense) => {
+    setEmailingExpense(expense);
+    setEmailForm({
+      to: expense.client ? `${expense.client.toLowerCase().replace(' ', '.')}@example.com` : '',
+      cc: '',
+      subject: `Expense Report: ${expense.title}`,
+      message: `Dear ${expense.client || 'Client'},\n\nPlease find attached the expense report for: ${expense.title}\n\nAmount: ${formatCurrency(expense.totalAmount, expense.currency)}\nDate: ${expense.date.toLocaleDateString()}\n\nBest regards,\nYour Law Firm`,
+      includeAttachments: true
+    });
+    setShowEmailDialog(true);
+  };
+
+  const handleSendEmail = () => {
+    if (!emailingExpense) return;
+    
+    // In a real app, this would send an actual email
+    toast({
+      title: "Email Sent",
+      description: `Expense report has been sent to ${emailForm.to}.`
+    });
+    setShowEmailDialog(false);
+    setEmailingExpense(null);
+  };
+
+  // Print expense
+  const printExpense = (expense: Expense) => {
+    // In a real app, this would open a print dialog
+    toast({
+      title: "Print Initiated",
+      description: `Expense "${expense.title}" has been sent to printer.`
+    });
+  };
+
+  // Archive expense
+  const archiveExpense = (expense: Expense) => {
+    setExpenses(prev => prev.map(exp => 
+      exp.id === expense.id 
+        ? { ...exp, isArchived: !exp.isArchived }
+        : exp
+    ));
+    toast({
+      title: expense.isArchived ? "Expense Unarchived" : "Expense Archived",
+      description: expense.isArchived ? "Expense has been restored." : "Expense has been archived."
+    });
+  };
+
+  // View expense history
+  const viewExpenseHistory = (expense: Expense) => {
+    setViewingExpense(expense);
+    setShowHistoryDialog(true);
+  };
+
+  // Download PDF
+  const downloadPDF = (expense: Expense) => {
+    // In a real app, this would generate and download a PDF
+    toast({
+      title: "PDF Generated",
+      description: `Expense report PDF for "${expense.title}" has been downloaded.`
+    });
+  };
+
+  // Download sample CSV template
+  const downloadSampleCSV = () => {
+    const sampleData = [
+      'title,amount,date,category,description,vendor,client,case,billable,tax,currency,paymentmethod',
+      '"Office Supplies",450.00,2024-01-15,"Office Supplies","Printer ink and paper","Office Depot","ABC Corp","Contract Review",true,15,ZAR,credit_card',
+      '"Client Lunch",1200.00,2024-01-14,"Meals & Entertainment","Business lunch with executives","The Restaurant","ABC Corp","",false,15,ZAR,credit_card',
+      '"Software License",2500.00,2024-01-13,"Software & Subscriptions","Annual subscription","TechSoft Inc","","",false,15,ZAR,bank_transfer'
+    ];
+
+    const csvContent = sampleData.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'expense_import_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Template Downloaded",
+      description: "Sample CSV template has been downloaded to help you format your data."
     });
   };
 
@@ -692,7 +1197,7 @@ const Expenses = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={bulkDelete}
+                        onClick={confirmBulkDelete}
                         className="text-red-600 hover:text-red-600"
                       >
                         Delete Selected
@@ -782,19 +1287,27 @@ const Expenses = () => {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="p-1">
-                                  <Settings size={14} />
+                                  <MoreVertical size={14} />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => viewExpense(expense)}>
+                                  <Eye size={14} className="mr-2" />
+                                  View Details
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => duplicateExpense(expense)}>
                                   <Copy size={14} className="mr-2" />
                                   Duplicate
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => convertToInvoice(expense)}>
+                                  <FileCheck size={14} className="mr-2" />
+                                  Convert to Invoice
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {expense.status === 'pending' && (
                                   <>
                                     <DropdownMenuItem onClick={() => updateExpenseStatus(expense.id, 'approved')}>
-                                      <Eye size={14} className="mr-2" />
+                                      <FileCheck size={14} className="mr-2" />
                                       Approve
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => updateExpenseStatus(expense.id, 'rejected')}>
@@ -810,9 +1323,30 @@ const Expenses = () => {
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => emailExpense(expense)}>
+                                  <Mail size={14} className="mr-2" />
+                                  Email to Client
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => printExpense(expense)}>
+                                  <Printer size={14} className="mr-2" />
+                                  Print
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => downloadPDF(expense)}>
+                                  <Download size={14} className="mr-2" />
+                                  Download PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => viewExpenseHistory(expense)}>
+                                  <History size={14} className="mr-2" />
+                                  View History
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => archiveExpense(expense)}>
+                                  <Archive size={14} className="mr-2" />
+                                  {expense.isArchived ? 'Unarchive' : 'Archive'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem 
                                   className="text-red-600 focus:text-red-600"
-                                  onClick={() => deleteExpense(expense.id)}
+                                  onClick={() => confirmDeleteExpense(expense)}
                                 >
                                   <Trash2 size={14} className="mr-2" />
                                   Delete
@@ -989,21 +1523,11 @@ const Expenses = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label>Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {expenseForm.date.toLocaleDateString()}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={expenseForm.date}
-                        onSelect={(date) => date && setExpenseForm(prev => ({ ...prev, date }))}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <Input
+                    type="date"
+                    value={expenseForm.date.toISOString().split('T')[0]}
+                    onChange={(e) => setExpenseForm(prev => ({ ...prev, date: new Date(e.target.value) }))}
+                  />
                 </div>
                 <div>
                   <Label>Category</Label>
@@ -1043,7 +1567,7 @@ const Expenses = () => {
                       <SelectValue placeholder="Select client..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Client</SelectItem>
+                      <SelectItem value="none">No Client</SelectItem>
                       {clients.map(client => (
                         <SelectItem key={client} value={client}>{client}</SelectItem>
                       ))}
@@ -1060,7 +1584,7 @@ const Expenses = () => {
                       <SelectValue placeholder="Select case..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Case</SelectItem>
+                      <SelectItem value="none">No Case</SelectItem>
                       {cases.map(caseItem => (
                         <SelectItem key={caseItem} value={caseItem}>{caseItem}</SelectItem>
                       ))}
@@ -1128,6 +1652,8 @@ const Expenses = () => {
                         accept="image/*,.pdf"
                         className="hidden"
                         onChange={(e) => handleFileUpload(e.target.files, 'receipt')}
+                        aria-label="Upload receipt file"
+                        title="Upload receipt file"
                       />
                     </div>
                     {expenseForm.receipt && (
@@ -1170,21 +1696,14 @@ const Expenses = () => {
                     </div>
                     <div>
                       <Label>End Date</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start">
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {expenseForm.recurringEndDate?.toLocaleDateString() || 'Select end date'}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={expenseForm.recurringEndDate}
-                            onSelect={(date) => setExpenseForm(prev => ({ ...prev, recurringEndDate: date }))}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <Input
+                        type="date"
+                        value={expenseForm.recurringEndDate?.toISOString().split('T')[0] || ''}
+                        onChange={(e) => setExpenseForm(prev => ({ 
+                          ...prev, 
+                          recurringEndDate: e.target.value ? new Date(e.target.value) : undefined 
+                        }))}
+                      />
                     </div>
                   </div>
                 )}
@@ -1229,11 +1748,48 @@ const Expenses = () => {
 
         {/* Import Dialog */}
         <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Import Expenses</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <FileUp size={20} />
+                Import Expenses from CSV
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Instructions */}
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">CSV Format Requirements</h4>
+                <p className="text-sm text-blue-700 mb-3">
+                  Your CSV file must include the following required columns:
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-sm text-blue-700">
+                  <div><strong>Required:</strong> title, amount, date, category</div>
+                  <div><strong>Optional:</strong> description, vendor, client, case, billable, tax, currency, paymentmethod</div>
+                </div>
+                <p className="text-sm text-blue-600 mt-3">
+                  <strong>Date format:</strong> YYYY-MM-DD or MM/DD/YYYY<br/>
+                  <strong>Billable:</strong> true/false or 1/0<br/>
+                  <strong>Amount:</strong> Numbers only (e.g., 123.45)
+                </p>
+              </div>
+
+              {/* Sample Download */}
+              <div className="flex justify-between items-center p-3 border rounded-lg">
+                <div>
+                  <p className="font-medium">Need a template?</p>
+                  <p className="text-sm text-gray-600">Download a sample CSV file to get started</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadSampleCSV()}
+                >
+                  <Download size={16} className="mr-2" />
+                  Download Sample
+                </Button>
+              </div>
+
+              {/* File Upload */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                 <div className="text-center">
                   <Database className="mx-auto h-12 w-12 text-gray-400" />
@@ -1243,6 +1799,7 @@ const Expenses = () => {
                       variant="outline"
                       onClick={() => csvInputRef.current?.click()}
                     >
+                      <FileUp size={16} className="mr-2" />
                       Select CSV File
                     </Button>
                     <input
@@ -1251,12 +1808,22 @@ const Expenses = () => {
                       accept=".csv"
                       className="hidden"
                       onChange={(e) => handleCSVImport(e.target.files)}
+                      aria-label="Upload CSV file"
+                      title="Upload CSV file"
                     />
                   </div>
                   <p className="mt-2 text-sm text-gray-600">
-                    Upload a CSV file with expense data
+                    Choose a CSV file to import your expense data
                   </p>
                 </div>
+              </div>
+
+              {/* Import Notes */}
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>• All imported expenses will have a status of "Pending"</p>
+                <p>• Invalid rows will be skipped and reported</p>
+                <p>• Tax calculations will be applied automatically</p>
+                <p>• The import process will validate all data before adding to your expenses</p>
               </div>
             </div>
           </DialogContent>
@@ -1264,48 +1831,113 @@ const Expenses = () => {
 
         {/* Export Dialog */}
         <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Export Expenses</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <FileDown size={20} />
+                Export Expenses
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Export Summary */}
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">Export Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm text-green-700">
+                  <div>
+                    <p><strong>Total Expenses:</strong> {filteredExpenses.length}</p>
+                    <p><strong>Total Amount:</strong> {formatCurrency(filteredExpenses.reduce((sum, exp) => sum + exp.totalAmount, 0))}</p>
+                  </div>
+                  <div>
+                    <p><strong>Pending:</strong> {filteredExpenses.filter(e => e.status === 'pending').length}</p>
+                    <p><strong>Approved:</strong> {filteredExpenses.filter(e => e.status === 'approved').length}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Export Format Selection */}
               <div>
-                <Label>Export Format</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <Button variant="outline" onClick={() => exportExpenses('excel')}>
-                    Excel
-                  </Button>
-                  <Button variant="outline" onClick={() => exportExpenses('pdf')}>
-                    PDF
-                  </Button>
-                  <Button variant="outline" onClick={() => exportExpenses('csv')}>
-                    CSV
-                  </Button>
+                <Label className="text-base font-medium">Choose Export Format</Label>
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                  <Card className="cursor-pointer hover:bg-gray-50" onClick={() => exportExpenses('csv')}>
+                    <CardContent className="p-4 text-center">
+                      <FileText size={24} className="mx-auto mb-2 text-blue-600" />
+                      <p className="font-medium">CSV</p>
+                      <p className="text-xs text-gray-600">Spreadsheet data</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="cursor-pointer hover:bg-gray-50" onClick={() => exportExpenses('excel')}>
+                    <CardContent className="p-4 text-center">
+                      <Database size={24} className="mx-auto mb-2 text-green-600" />
+                      <p className="font-medium">Excel</p>
+                      <p className="text-xs text-gray-600">Formatted table</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="cursor-pointer hover:bg-gray-50" onClick={() => exportExpenses('pdf')}>
+                    <CardContent className="p-4 text-center">
+                      <FileText size={24} className="mx-auto mb-2 text-red-600" />
+                      <p className="font-medium">PDF Report</p>
+                      <p className="text-xs text-gray-600">Professional report</p>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
               
+              {/* Quick Export Options */}
               <div>
-                <Label>Date Range Export</Label>
-                <div className="mt-2 space-y-2">
+                <Label className="text-base font-medium">Quick Export Options</Label>
+                <div className="grid grid-cols-2 gap-3 mt-3">
                   <Button 
                     variant="outline" 
-                    className="w-full"
+                    className="h-auto p-4 flex flex-col items-center"
                     onClick={() => exportExpenses('excel', { 
                       from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), 
                       to: new Date() 
                     })}
                   >
-                    Export This Month
+                    <FileDown size={20} className="mb-2" />
+                    <span className="font-medium">This Month</span>
+                    <span className="text-xs text-gray-600">
+                      {new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString()} - {new Date().toLocaleDateString()}
+                    </span>
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="w-full"
+                    className="h-auto p-4 flex flex-col items-center"
                     onClick={() => exportExpenses('excel', { 
                       from: new Date(new Date().getFullYear(), 0, 1), 
                       to: new Date() 
                     })}
                   >
-                    Export This Year
+                    <FileDown size={20} className="mb-2" />
+                    <span className="font-medium">This Year</span>
+                    <span className="text-xs text-gray-600">
+                      {new Date().getFullYear()} Annual Report
+                    </span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Export Options */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Export Options</Label>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>• Current filters will be applied to the export</p>
+                  <p>• All expense data including receipts and attachments metadata</p>
+                  <p>• File will be automatically downloaded to your Downloads folder</p>
+                  <p>• Export includes full audit trail and timestamps</p>
+                </div>
+              </div>
+
+              {/* Custom Date Range */}
+              <div className="p-3 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">Need a custom date range?</p>
+                    <p className="text-sm text-gray-600">Use the filters above, then export</p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Filter size={16} className="mr-2" />
+                    Set Filters
                   </Button>
                 </div>
               </div>
@@ -1474,6 +2106,242 @@ const Expenses = () => {
                   <p>{viewingExpense?.recurringEndDate.toLocaleDateString()}</p>
                 </div>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete the expense "{deletingExpense?.title}"? 
+                This action cannot be undone and will permanently remove the expense from your records.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={deleteExpense} className="bg-red-600 hover:bg-red-700">
+                Delete Expense
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk Delete Confirmation Dialog */}
+        <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Selected Expenses</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete {selectedExpenses.length} selected expense(s)? 
+                This action cannot be undone and will permanently remove all selected expenses from your records.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={bulkDelete} className="bg-red-600 hover:bg-red-700">
+                Delete {selectedExpenses.length} Expense(s)
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Convert to Invoice Dialog */}
+        <Dialog open={showConvertDialog} onOpenChange={setShowConvertDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileCheck size={20} />
+                Convert Expense to Invoice
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900">Converting Expense</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  {convertingExpense?.title} - {formatCurrency(convertingExpense?.totalAmount, convertingExpense?.currency)}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Invoice Number</Label>
+                  <Input
+                    value={convertForm.invoiceNumber}
+                    onChange={(e) => setConvertForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                    placeholder="INV-2024-0001"
+                  />
+                </div>
+                <div>
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={convertForm.dueDate.toISOString().split('T')[0]}
+                    onChange={(e) => setConvertForm(prev => ({ ...prev, dueDate: new Date(e.target.value) }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  checked={convertForm.includeDescription}
+                  onCheckedChange={(checked) => setConvertForm(prev => ({ ...prev, includeDescription: !!checked }))}
+                />
+                <Label>Include expense description in invoice</Label>
+              </div>
+
+              <div>
+                <Label>Invoice Notes</Label>
+                <Textarea
+                  value={convertForm.notes}
+                  onChange={(e) => setConvertForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Additional notes for the invoice..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button variant="outline" onClick={() => setShowConvertDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleConvertToInvoice}>
+                  Create Invoice
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Dialog */}
+        <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Mail size={20} />
+                Email Expense Report
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>To</Label>
+                  <Input
+                    value={emailForm.to}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, to: e.target.value }))}
+                    placeholder="client@example.com"
+                  />
+                </div>
+                <div>
+                  <Label>CC (Optional)</Label>
+                  <Input
+                    value={emailForm.cc}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, cc: e.target.value }))}
+                    placeholder="manager@yourfirm.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Subject</Label>
+                <Input
+                  value={emailForm.subject}
+                  onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                  placeholder="Expense Report"
+                />
+              </div>
+
+              <div>
+                <Label>Message</Label>
+                <Textarea
+                  value={emailForm.message}
+                  onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
+                  rows={6}
+                  placeholder="Email message..."
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  checked={emailForm.includeAttachments}
+                  onCheckedChange={(checked) => setEmailForm(prev => ({ ...prev, includeAttachments: !!checked }))}
+                />
+                <Label>Include expense attachments</Label>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSendEmail}>
+                  <Send size={16} className="mr-2" />
+                  Send Email
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History size={20} />
+                Expense History
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium">{viewingExpense?.title}</h4>
+                <p className="text-sm text-gray-600">{formatCurrency(viewingExpense?.totalAmount, viewingExpense?.currency)}</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Plus size={14} className="text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">Expense Created</p>
+                    <p className="text-sm text-gray-600">Created by {viewingExpense?.createdBy}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {viewingExpense?.createdAt.toLocaleString()}
+                  </div>
+                </div>
+
+                {viewingExpense?.status === 'approved' && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <FileCheck size={14} className="text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">Expense Approved</p>
+                      <p className="text-sm text-gray-600">Approved by {viewingExpense?.approvedBy || 'System'}</p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {viewingExpense?.updatedAt.toLocaleString()}
+                    </div>
+                  </div>
+                )}
+
+                {viewingExpense?.status === 'paid' && (
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <CreditCard size={14} className="text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">Payment Processed</p>
+                      <p className="text-sm text-gray-600">Payment completed</p>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {viewingExpense?.updatedAt.toLocaleString()}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>

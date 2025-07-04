@@ -35,6 +35,7 @@ import { InvoiceSettings } from "@/components/invoices/InvoiceSettings";
 import type { InvoiceSettingsData } from "@/components/invoices/InvoiceSettings";
 import { useToast } from "@/hooks/use-toast";
 import { RecurringInvoiceCard } from "@/components/invoices/RecurringInvoiceCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Invoice {
   id: string;
@@ -316,6 +317,10 @@ const Invoices = () => {
       { label: 'Annually (365 days)', value: 'annually', days: 365 }
     ]
   });
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [detailsInvoice, setDetailsInvoice] = useState<Invoice | null>(null);
+  const [historyInvoice, setHistoryInvoice] = useState<Invoice | null>(null);
 
   // Auto-save draft functionality
   useEffect(() => {
@@ -410,7 +415,27 @@ const Invoices = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
-    setEditingInvoice(invoice);
+    // Transform the invoice data to match what InvoiceDialog expects
+    const transformedInvoice = {
+      ...invoice,
+      items: invoice.items.map((item, index) => ({
+        ...item,
+        id: item.id || `item_${index + 1}`
+      })),
+      paymentSchedule: invoice.paymentSchedule?.map((schedule, index) => ({
+        ...schedule,
+        id: schedule.id || `schedule_${index + 1}`
+      })) || [],
+      customFields: {
+        itemLabel: 'Description',
+        quantityLabel: 'Quantity',
+        rateLabel: 'Rate',
+        showBankingDetails: false,
+        showWeight: false
+      }
+    };
+    
+    setEditingInvoice(transformedInvoice);
     setShowCreateDialog(true);
   };
 
@@ -533,6 +558,16 @@ const Invoices = () => {
   };
 
   const stats = getTotalStats();
+
+  const handleViewDetails = (invoice: Invoice) => {
+    setDetailsInvoice(invoice);
+    setShowDetailsDialog(true);
+  };
+
+  const handleViewHistory = (invoice: Invoice) => {
+    setHistoryInvoice(invoice);
+    setShowHistoryDialog(true);
+  };
 
   return (
     <DashboardLayout title="Invoices" description="Manage and create invoices for your clients">
@@ -718,7 +753,7 @@ const Invoices = () => {
                             <Edit size={16} className="mr-2" />
                             Edit Invoice
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(invoice)}>
                             <Eye size={16} className="mr-2" />
                             View Details
                           </DropdownMenuItem>
@@ -744,7 +779,7 @@ const Invoices = () => {
                             <CreditCard size={16} className="mr-2" />
                             Add Payment
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewHistory(invoice)}>
                             <History size={16} className="mr-2" />
                             View History
                           </DropdownMenuItem>
@@ -922,6 +957,59 @@ const Invoices = () => {
           });
         }}
       />
+
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogDescription>All information for invoice {detailsInvoice?.number}</DialogDescription>
+          </DialogHeader>
+          {detailsInvoice && (
+            <div className="space-y-2 text-sm">
+              <div><b>Client:</b> {detailsInvoice.clientName}</div>
+              {detailsInvoice.caseName && <div><b>Case:</b> {detailsInvoice.caseName}</div>}
+              <div><b>Date:</b> {formatDate(detailsInvoice.date)}</div>
+              <div><b>Due Date:</b> {formatDate(detailsInvoice.dueDate)}</div>
+              <div><b>Status:</b> {detailsInvoice.status}</div>
+              <div><b>Amount:</b> {formatCurrency(detailsInvoice.total)}</div>
+              <div><b>Paid:</b> {formatCurrency(detailsInvoice.paidAmount)}</div>
+              <div><b>Tax:</b> {detailsInvoice.taxRate}% ({formatCurrency(detailsInvoice.taxAmount)})</div>
+              <div><b>Discount:</b> {detailsInvoice.discountRate}% ({formatCurrency(detailsInvoice.discountAmount)})</div>
+              <div><b>Subtotal:</b> {formatCurrency(detailsInvoice.subtotal)}</div>
+              <div><b>Notes:</b> {detailsInvoice.notes || '-'}</div>
+              <div><b>Terms:</b> {detailsInvoice.terms || '-'}</div>
+              <div><b>Template:</b> {detailsInvoice.template}</div>
+              <div><b>Signature Status:</b> {detailsInvoice.signatureStatus || 'N/A'}</div>
+              <div><b>Attachments:</b> {detailsInvoice.attachments.length > 0 ? detailsInvoice.attachments.join(', ') : '-'}</div>
+              <div><b>Last Modified:</b> {formatDate(detailsInvoice.lastModified)}</div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Invoice History</DialogTitle>
+            <DialogDescription>All actions for invoice {historyInvoice?.number}</DialogDescription>
+          </DialogHeader>
+          {historyInvoice && (
+            <div className="space-y-2 text-sm max-h-80 overflow-y-auto">
+              {historyInvoice.history.length === 0 ? (
+                <div>No history available.</div>
+              ) : (
+                <ul className="list-disc pl-4">
+                  {historyInvoice.history.map((h, idx) => (
+                    <li key={idx}>
+                      <b>{formatDate(h.date)}:</b> {h.action} by {h.user} — {h.details}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };

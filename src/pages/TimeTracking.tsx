@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { 
   Play, 
   Pause, 
@@ -62,6 +64,51 @@ interface TravelEntry {
   overallTotal: number;
 }
 
+interface InvoiceFormData {
+  number: string;
+  clientId: string;
+  clientName: string;
+  caseId?: string;
+  caseName?: string;
+  date: string;
+  dueDate: string;
+  status: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled';
+  items: Array<{
+    id?: string;
+    description: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+  }>;
+  selectedTimeEntries: string[];
+  selectedTravelEntries: string[];
+  taxRate: number;
+  taxAmount: number;
+  discountRate: number;
+  discountAmount: number;
+  subtotal: number;
+  total: number;
+  notes?: string;
+  terms?: string;
+  template: string;
+}
+
+// Mock data for invoice creation
+const mockClients = [
+  { id: 'client_1', name: 'Clinsmen' },
+  { id: 'client_2', name: 'ABC Corp' },
+  { id: 'client_3', name: 'XYZ Ltd' },
+  { id: 'client_4', name: 'Legal Partners' }
+];
+
+const mockCases = [
+  { id: 'case_1', name: 'Contract Review', clientId: 'client_1' },
+  { id: 'case_2', name: 'Litigation Support', clientId: 'client_1' },
+  { id: 'case_3', name: 'Business Acquisition', clientId: 'client_2' },
+  { id: 'case_4', name: 'Due Diligence', clientId: 'client_3' },
+  { id: 'case_5', name: 'Compliance Review', clientId: 'client_4' }
+];
+
 const TimeTracking = () => {
   const { toast } = useToast();
   
@@ -73,6 +120,18 @@ const TimeTracking = () => {
   // Manual Entry State
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualEntry, setManualEntry] = useState({
+    description: '',
+    duration: '',
+    hourlyRate: 12,
+    date: new Date(),
+    client: '',
+    project: ''
+  });
+
+  // Edit Time Entry State
+  const [showEditTimeEntry, setShowEditTimeEntry] = useState(false);
+  const [editingTimeEntry, setEditingTimeEntry] = useState<TimeEntry | null>(null);
+  const [editTimeForm, setEditTimeForm] = useState({
     description: '',
     duration: '',
     hourlyRate: 12,
@@ -95,8 +154,74 @@ const TimeTracking = () => {
     hoursSpent: 0
   });
 
-  // Mock data
-  const mockClients = ['Clinsmen', 'ABC Corp', 'XYZ Ltd', 'Legal Partners'];
+  // Edit Travel Entry State
+  const [showEditTravelEntry, setShowEditTravelEntry] = useState(false);
+  const [editingTravelEntry, setEditingTravelEntry] = useState<TravelEntry | null>(null);
+  const [editTravelForm, setEditTravelForm] = useState({
+    date: new Date(),
+    clientName: '',
+    from: '',
+    to: '',
+    pricePerKm: 10,
+    totalKm: 0,
+    hourlyRate: 100,
+    hoursSpent: 0
+  });
+
+  // Create Invoice State
+  const [showCreateInvoice, setShowCreateInvoice] = useState(false);
+  const [selectedTimeEntries, setSelectedTimeEntries] = useState<string[]>([]);
+  const [invoiceForm, setInvoiceForm] = useState<InvoiceFormData>({
+    number: '',
+    clientId: '',
+    clientName: '',
+    caseId: '',
+    caseName: '',
+    date: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'draft',
+    items: [],
+    selectedTimeEntries: [],
+    selectedTravelEntries: [],
+    taxRate: 15,
+    taxAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    subtotal: 0,
+    total: 0,
+    notes: '',
+    terms: 'Payment due within 30 days of invoice date.',
+    template: 'professional'
+  });
+
+  // Travel Invoice State
+  const [showCreateTravelInvoice, setShowCreateTravelInvoice] = useState(false);
+  const [selectedTravelEntries, setSelectedTravelEntries] = useState<string[]>([]);
+  const [travelInvoiceForm, setTravelInvoiceForm] = useState<InvoiceFormData>({
+    number: '',
+    clientId: '',
+    clientName: '',
+    caseId: '',
+    caseName: '',
+    date: new Date().toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    status: 'draft',
+    items: [],
+    selectedTimeEntries: [],
+    selectedTravelEntries: [],
+    taxRate: 15,
+    taxAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    subtotal: 0,
+    total: 0,
+    notes: '',
+    terms: 'Payment due within 30 days of invoice date.',
+    template: 'professional'
+  });
+
+  // Mock client names for dropdown
+  const mockClientNames = ['Clinsmen', 'ABC Corp', 'XYZ Ltd', 'Legal Partners'];
   const mockProjects = ['Contract Review', 'Litigation', 'Due Diligence', 'Compliance'];
 
   // Timer functionality
@@ -206,7 +331,7 @@ const TimeTracking = () => {
     });
   };
 
-  const updateTimeEntry = (entryId: string, field: string, value: any) => {
+  const updateTimeEntry = (entryId: string, field: string, value: string | number) => {
     setTimeEntries(prev => prev.map(entry => {
       if (entry.id === entryId) {
         const updated = { ...entry, [field]: value };
@@ -320,9 +445,26 @@ const TimeTracking = () => {
     });
   };
 
+  // Calculate invoice totals
+  const calculateInvoiceTotals = (entries: TimeEntry[]) => {
+    const subtotal = entries.reduce((sum, entry) => sum + entry.totalAmount, 0);
+    const discountAmount = (subtotal * invoiceForm.discountRate) / 100;
+    const discountedSubtotal = subtotal - discountAmount;
+    const taxAmount = (discountedSubtotal * invoiceForm.taxRate) / 100;
+    const total = discountedSubtotal + taxAmount;
+
+    return {
+      subtotal,
+      discountAmount,
+      taxAmount,
+      total
+    };
+  };
+
+  // Create invoice from selected time entries
   const createInvoiceFromTime = () => {
-    const totalEntries = timeEntries.filter(entry => !entry.isRunning).length;
-    if (totalEntries === 0) {
+    const completedEntries = timeEntries.filter(entry => !entry.isRunning);
+    if (completedEntries.length === 0) {
       toast({
         title: "No Entries",
         description: "No completed time entries to create invoice from.",
@@ -331,12 +473,143 @@ const TimeTracking = () => {
       return;
     }
 
-    toast({
-      title: "Invoice Created",
-      description: `Invoice created with ${totalEntries} time entries.`
+    // Reset form and pre-select all completed entries
+    setSelectedTimeEntries(completedEntries.map(entry => entry.id));
+    
+    // Generate invoice number
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+    
+    setInvoiceForm(prev => ({
+      ...prev,
+      number: invoiceNumber,
+      selectedTimeEntries: completedEntries.map(entry => entry.id)
+    }));
+    
+    setShowCreateInvoice(true);
+  };
+
+  // Handle time entry selection for invoice
+  const handleTimeEntrySelection = (entryId: string, checked: boolean) => {
+    setSelectedTimeEntries(prev => {
+      const newSelection = checked 
+        ? [...prev, entryId]
+        : prev.filter(id => id !== entryId);
+      
+      // Update invoice form
+      const selectedEntries = timeEntries.filter(entry => newSelection.includes(entry.id));
+      const items = selectedEntries.map(entry => ({
+        description: entry.description || `Time Entry - ${entry.client || 'No Client'}`,
+        quantity: Number((entry.duration / 3600).toFixed(2)),
+        rate: entry.hourlyRate,
+        amount: entry.totalAmount
+      }));
+
+      const totals = calculateInvoiceTotals(selectedEntries);
+      
+      setInvoiceForm(prev => ({
+        ...prev,
+        items,
+        selectedTimeEntries: newSelection,
+        subtotal: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        taxAmount: totals.taxAmount,
+        total: totals.total
+      }));
+
+      return newSelection;
     });
   };
 
+  // Handle client selection change
+  const handleClientChange = (clientId: string) => {
+    const client = mockClients.find(c => c.id === clientId);
+    const clientCases = mockCases.filter(c => c.clientId === clientId);
+    
+    setInvoiceForm(prev => ({
+      ...prev,
+      clientId,
+      clientName: client?.name || '',
+      caseId: clientCases.length > 0 ? clientCases[0].id : '',
+      caseName: clientCases.length > 0 ? clientCases[0].name : ''
+    }));
+  };
+
+  // Handle case selection change
+  const handleCaseChange = (caseId: string) => {
+    const case_ = mockCases.find(c => c.id === caseId);
+    
+    setInvoiceForm(prev => ({
+      ...prev,
+      caseId,
+      caseName: case_?.name || ''
+    }));
+  };
+
+  // Save invoice
+  const saveInvoice = () => {
+    if (!invoiceForm.clientId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a client.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedTimeEntries.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one time entry.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Here you would typically save to your backend
+    console.log('Saving invoice:', invoiceForm);
+
+    toast({
+      title: "Invoice Created",
+      description: `Invoice ${invoiceForm.number} created successfully with ${selectedTimeEntries.length} time entries.`
+    });
+
+    // Reset and close
+    setShowCreateInvoice(false);
+    setSelectedTimeEntries([]);
+    setInvoiceForm(prev => ({
+      ...prev,
+      number: '',
+      clientId: '',
+      clientName: '',
+      caseId: '',
+      caseName: '',
+      items: [],
+      selectedTimeEntries: [],
+      selectedTravelEntries: [],
+      subtotal: 0,
+      taxAmount: 0,
+      discountAmount: 0,
+      total: 0
+    }));
+  };
+
+  // Calculate travel invoice totals
+  const calculateTravelInvoiceTotals = (entries: TravelEntry[]) => {
+    const subtotal = entries.reduce((sum, entry) => sum + entry.overallTotal, 0);
+    const discountAmount = (subtotal * travelInvoiceForm.discountRate) / 100;
+    const discountedSubtotal = subtotal - discountAmount;
+    const taxAmount = (discountedSubtotal * travelInvoiceForm.taxRate) / 100;
+    const total = discountedSubtotal + taxAmount;
+
+    return {
+      subtotal,
+      discountAmount,
+      taxAmount,
+      total
+    };
+  };
+
+  // Create invoice from travel entries
   const createInvoiceFromTravel = () => {
     if (travelEntries.length === 0) {
       toast({
@@ -347,10 +620,259 @@ const TimeTracking = () => {
       return;
     }
 
+    // Reset form and pre-select all travel entries
+    setSelectedTravelEntries(travelEntries.map(entry => entry.id));
+    
+    // Generate invoice number
+    const invoiceNumber = `TRV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+    
+    setTravelInvoiceForm(prev => ({
+      ...prev,
+      number: invoiceNumber,
+      selectedTravelEntries: travelEntries.map(entry => entry.id)
+    }));
+    
+    setShowCreateTravelInvoice(true);
+  };
+
+  // Handle travel entry selection for invoice
+  const handleTravelEntrySelection = (entryId: string, checked: boolean) => {
+    setSelectedTravelEntries(prev => {
+      const newSelection = checked 
+        ? [...prev, entryId]
+        : prev.filter(id => id !== entryId);
+      
+      // Update invoice form
+      const selectedEntries = travelEntries.filter(entry => newSelection.includes(entry.id));
+      const items = selectedEntries.map(entry => ({
+        description: `Travel: ${entry.from} to ${entry.to} - ${entry.clientName}`,
+        quantity: 1,
+        rate: entry.overallTotal,
+        amount: entry.overallTotal
+      }));
+
+      const totals = calculateTravelInvoiceTotals(selectedEntries);
+      
+      setTravelInvoiceForm(prev => ({
+        ...prev,
+        items,
+        selectedTravelEntries: newSelection,
+        subtotal: totals.subtotal,
+        discountAmount: totals.discountAmount,
+        taxAmount: totals.taxAmount,
+        total: totals.total
+      }));
+
+      return newSelection;
+    });
+  };
+
+  // Handle travel client selection change
+  const handleTravelClientChange = (clientId: string) => {
+    const client = mockClients.find(c => c.id === clientId);
+    const clientCases = mockCases.filter(c => c.clientId === clientId);
+    
+    setTravelInvoiceForm(prev => ({
+      ...prev,
+      clientId,
+      clientName: client?.name || '',
+      caseId: clientCases.length > 0 ? clientCases[0].id : '',
+      caseName: clientCases.length > 0 ? clientCases[0].name : ''
+    }));
+  };
+
+  // Handle travel case selection change
+  const handleTravelCaseChange = (caseId: string) => {
+    const case_ = mockCases.find(c => c.id === caseId);
+    
+    setTravelInvoiceForm(prev => ({
+      ...prev,
+      caseId,
+      caseName: case_?.name || ''
+    }));
+  };
+
+  // Save travel invoice
+  const saveTravelInvoice = () => {
+    if (!travelInvoiceForm.clientId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a client.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedTravelEntries.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please select at least one travel entry.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Here you would typically save to your backend
+    console.log('Saving travel invoice:', travelInvoiceForm);
+
     toast({
       title: "Travel Invoice Created",
-      description: `Invoice created with ${travelEntries.length} travel entries.`
+      description: `Invoice ${travelInvoiceForm.number} created successfully with ${selectedTravelEntries.length} travel entries.`
     });
+
+    // Reset and close
+    setShowCreateTravelInvoice(false);
+    setSelectedTravelEntries([]);
+    setTravelInvoiceForm(prev => ({
+      ...prev,
+      number: '',
+      clientId: '',
+      clientName: '',
+      caseId: '',
+      caseName: '',
+      items: [],
+      selectedTravelEntries: [],
+      subtotal: 0,
+      taxAmount: 0,
+      discountAmount: 0,
+      total: 0
+    }));
+  };
+
+  // Edit Time Entry Functions
+  const handleEditTimeEntry = (entry: TimeEntry) => {
+    setEditingTimeEntry(entry);
+    setEditTimeForm({
+      description: entry.description,
+      duration: (entry.duration / 3600).toString(),
+      hourlyRate: entry.hourlyRate,
+      date: entry.date,
+      client: entry.client || '',
+      project: entry.project || ''
+    });
+    setShowEditTimeEntry(true);
+  };
+
+  const saveEditedTimeEntry = () => {
+    if (!editingTimeEntry) return;
+
+    if (!editTimeForm.description || !editTimeForm.duration) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in description and duration.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const durationInSeconds = parseFloat(editTimeForm.duration) * 3600;
+    const totalAmount = parseFloat(editTimeForm.duration) * editTimeForm.hourlyRate;
+    const vatAmount = totalAmount * 0.1;
+
+    setTimeEntries(prev => prev.map(entry => 
+      entry.id === editingTimeEntry.id ? {
+        ...entry,
+        description: editTimeForm.description,
+        duration: durationInSeconds,
+        hourlyRate: editTimeForm.hourlyRate,
+        date: editTimeForm.date,
+        client: editTimeForm.client,
+        project: editTimeForm.project,
+        totalAmount,
+        vatAmount,
+        finalAmount: totalAmount + vatAmount,
+        endTime: new Date(editTimeForm.date.getTime() + durationInSeconds * 1000)
+      } : entry
+    ));
+
+    setShowEditTimeEntry(false);
+    setEditingTimeEntry(null);
+
+    toast({
+      title: "Time Entry Updated",
+      description: "Time entry has been successfully updated."
+    });
+  };
+
+  const handleDeleteTimeEntry = (entryId: string) => {
+    if (window.confirm('Are you sure you want to delete this time entry?')) {
+      setTimeEntries(prev => prev.filter(entry => entry.id !== entryId));
+      setActiveTimers(prev => prev.filter(id => id !== entryId));
+      
+      toast({
+        title: "Time Entry Deleted",
+        description: "Time entry has been deleted successfully."
+      });
+    }
+  };
+
+  // Edit Travel Entry Functions
+  const handleEditTravelEntry = (entry: TravelEntry) => {
+    setEditingTravelEntry(entry);
+    setEditTravelForm({
+      date: entry.date,
+      clientName: entry.clientName,
+      from: entry.from,
+      to: entry.to,
+      pricePerKm: entry.pricePerKm,
+      totalKm: entry.totalKm,
+      hourlyRate: entry.hourlyRate,
+      hoursSpent: entry.hoursSpent
+    });
+    setShowEditTravelEntry(true);
+  };
+
+  const saveEditedTravelEntry = () => {
+    if (!editingTravelEntry) return;
+
+    if (!editTravelForm.clientName || !editTravelForm.from || !editTravelForm.to) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const totalAmountKm = editTravelForm.totalKm * editTravelForm.pricePerKm;
+    const totalAmountHours = editTravelForm.hoursSpent * editTravelForm.hourlyRate;
+    const overallTotal = totalAmountKm + totalAmountHours;
+
+    setTravelEntries(prev => prev.map(entry => 
+      entry.id === editingTravelEntry.id ? {
+        ...entry,
+        date: editTravelForm.date,
+        clientName: editTravelForm.clientName,
+        from: editTravelForm.from,
+        to: editTravelForm.to,
+        pricePerKm: editTravelForm.pricePerKm,
+        totalKm: editTravelForm.totalKm,
+        totalAmountKm,
+        hourlyRate: editTravelForm.hourlyRate,
+        hoursSpent: editTravelForm.hoursSpent,
+        totalAmountHours,
+        overallTotal
+      } : entry
+    ));
+
+    setShowEditTravelEntry(false);
+    setEditingTravelEntry(null);
+
+    toast({
+      title: "Travel Entry Updated",
+      description: "Travel entry has been successfully updated."
+    });
+  };
+
+  const handleDeleteTravelEntry = (entryId: string) => {
+    if (window.confirm('Are you sure you want to delete this travel entry?')) {
+      setTravelEntries(prev => prev.filter(entry => entry.id !== entryId));
+      
+      toast({
+        title: "Travel Entry Deleted",
+        description: "Travel entry has been deleted successfully."
+      });
+    }
   };
 
   return (
@@ -534,10 +1056,10 @@ const TimeTracking = () => {
                                 <Play size={14} />
                               </Button>
                             )}
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleEditTimeEntry(entry)}>
                               <Edit size={14} />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTimeEntry(entry.id)}>
                               <Trash2 size={14} />
                             </Button>
                           </div>
@@ -617,10 +1139,10 @@ const TimeTracking = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleEditTravelEntry(entry)}>
                               <Edit size={14} />
                             </Button>
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTravelEntry(entry.id)}>
                               <Trash2 size={14} />
                             </Button>
                           </div>
@@ -692,7 +1214,7 @@ const TimeTracking = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {mockClients.map(client => (
-                        <SelectItem key={client} value={client}>{client}</SelectItem>
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -786,7 +1308,7 @@ const TimeTracking = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {mockClients.map(client => (
-                        <SelectItem key={client} value={client}>{client}</SelectItem>
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -890,6 +1412,918 @@ const TimeTracking = () => {
                 <Button onClick={saveTravelEntry}>
                   Save Travel Entry
                 </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Time Entry Dialog */}
+        <Dialog open={showEditTimeEntry} onOpenChange={setShowEditTimeEntry}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Time Entry</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Description *</Label>
+                <Textarea
+                  value={editTimeForm.description}
+                  onChange={(e) => setEditTimeForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="What did you work on?"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Duration (hours) *</Label>
+                  <Input
+                    type="number"
+                    step="0.25"
+                    value={editTimeForm.duration}
+                    onChange={(e) => setEditTimeForm(prev => ({ ...prev, duration: e.target.value }))}
+                    placeholder="1.5"
+                  />
+                </div>
+                <div>
+                  <Label>Hourly Rate</Label>
+                  <div className="flex items-center">
+                    <span className="text-sm mr-1">R</span>
+                    <Input
+                      type="number"
+                      value={editTimeForm.hourlyRate}
+                      onChange={(e) => setEditTimeForm(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Client</Label>
+                  <Select 
+                    value={editTimeForm.client} 
+                    onValueChange={(value) => setEditTimeForm(prev => ({ ...prev, client: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockClients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Project</Label>
+                  <Select 
+                    value={editTimeForm.project} 
+                    onValueChange={(value) => setEditTimeForm(prev => ({ ...prev, project: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select project..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockProjects.map(project => (
+                        <SelectItem key={project} value={project}>{project}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {editTimeForm.date.toLocaleDateString()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={editTimeForm.date}
+                      onSelect={(date) => date && setEditTimeForm(prev => ({ ...prev, date }))}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button variant="outline" onClick={() => setShowEditTimeEntry(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveEditedTimeEntry}>
+                  Save Entry
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Travel Entry Dialog */}
+        <Dialog open={showEditTravelEntry} onOpenChange={setShowEditTravelEntry}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MapPin size={18} />
+                Edit Travel Time Sheet Entry
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {editTravelForm.date.toLocaleDateString()}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={editTravelForm.date}
+                        onSelect={(date) => date && setEditTravelForm(prev => ({ ...prev, date }))}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label>Client Name *</Label>
+                  <Select 
+                    value={editTravelForm.clientName} 
+                    onValueChange={(value) => setEditTravelForm(prev => ({ ...prev, clientName: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockClients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>From *</Label>
+                  <Input
+                    value={editTravelForm.from}
+                    onChange={(e) => setEditTravelForm(prev => ({ ...prev, from: e.target.value }))}
+                    placeholder="e.g., JHB"
+                  />
+                </div>
+                <div>
+                  <Label>To *</Label>
+                  <Input
+                    value={editTravelForm.to}
+                    onChange={(e) => setEditTravelForm(prev => ({ ...prev, to: e.target.value }))}
+                    placeholder="e.g., PTA"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Price per Km</Label>
+                  <div className="flex items-center">
+                    <span className="text-sm mr-1">R</span>
+                    <Input
+                      type="number"
+                      value={editTravelForm.pricePerKm}
+                      onChange={(e) => setEditTravelForm(prev => ({ ...prev, pricePerKm: parseFloat(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Total Km</Label>
+                  <Input
+                    type="number"
+                    value={editTravelForm.totalKm}
+                    onChange={(e) => setEditTravelForm(prev => ({ ...prev, totalKm: parseFloat(e.target.value) || 0 }))}
+                    placeholder="20"
+                  />
+                </div>
+                <div>
+                  <Label>Total Amount (Km)</Label>
+                  <div className="p-2 bg-gray-50 rounded font-medium">
+                    {formatCurrency(editTravelForm.totalKm * editTravelForm.pricePerKm)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Hourly Rate</Label>
+                  <div className="flex items-center">
+                    <span className="text-sm mr-1">R</span>
+                    <Input
+                      type="number"
+                      value={editTravelForm.hourlyRate}
+                      onChange={(e) => setEditTravelForm(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Hours Spent</Label>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    value={editTravelForm.hoursSpent}
+                    onChange={(e) => setEditTravelForm(prev => ({ ...prev, hoursSpent: parseFloat(e.target.value) || 0 }))}
+                    placeholder="2"
+                  />
+                </div>
+                <div>
+                  <Label>Total Amount (Hours)</Label>
+                  <div className="p-2 bg-gray-50 rounded font-medium">
+                    {formatCurrency(editTravelForm.hoursSpent * editTravelForm.hourlyRate)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Overall Total Amount:</span>
+                  <span className="text-xl font-bold text-blue-600">
+                    {formatCurrency(
+                      (editTravelForm.totalKm * editTravelForm.pricePerKm) + 
+                      (editTravelForm.hoursSpent * editTravelForm.hourlyRate)
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4">
+                <Button variant="outline" onClick={() => setShowEditTravelEntry(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveEditedTravelEntry}>
+                  Save Entry
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Invoice Dialog */}
+        <Dialog open={showCreateInvoice} onOpenChange={setShowCreateInvoice}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt size={20} />
+                Create Invoice from Time Entries
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Invoice Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Invoice Number *</Label>
+                  <Input
+                    value={invoiceForm.number}
+                    onChange={(e) => setInvoiceForm(prev => ({ ...prev, number: e.target.value }))}
+                    placeholder="INV-2024-001"
+                  />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                                     <Select 
+                     value={invoiceForm.status} 
+                     onValueChange={(value: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled') => setInvoiceForm(prev => ({ ...prev, status: value }))}
+                   >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Client and Case Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Client *</Label>
+                  <Select 
+                    value={invoiceForm.clientId} 
+                    onValueChange={handleClientChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockClients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Case (Optional)</Label>
+                  <Select 
+                    value={invoiceForm.caseId} 
+                    onValueChange={handleCaseChange}
+                    disabled={!invoiceForm.clientId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select case..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockCases
+                        .filter(case_ => case_.clientId === invoiceForm.clientId)
+                        .map(case_ => (
+                          <SelectItem key={case_.id} value={case_.id}>{case_.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Invoice Date</Label>
+                  <Input
+                    type="date"
+                    value={invoiceForm.date}
+                    onChange={(e) => setInvoiceForm(prev => ({ ...prev, date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={invoiceForm.dueDate}
+                    onChange={(e) => setInvoiceForm(prev => ({ ...prev, dueDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Time Entries Selection */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <Label className="text-base font-semibold">Select Time Entries</Label>
+                  <div className="flex gap-2">
+                                         <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={() => {
+                         const completedEntries = timeEntries.filter(entry => !entry.isRunning);
+                         const allIds = completedEntries.map(entry => entry.id);
+                         setSelectedTimeEntries(allIds);
+                         
+                         // Update invoice form with all entries
+                         const items = completedEntries.map(entry => ({
+                           description: entry.description || `Time Entry - ${entry.client || 'No Client'}`,
+                           quantity: Number((entry.duration / 3600).toFixed(2)),
+                           rate: entry.hourlyRate,
+                           amount: entry.totalAmount
+                         }));
+
+                         const totals = calculateInvoiceTotals(completedEntries);
+                         
+                         setInvoiceForm(prev => ({
+                           ...prev,
+                           items,
+                           selectedTimeEntries: allIds,
+                           subtotal: totals.subtotal,
+                           discountAmount: totals.discountAmount,
+                           taxAmount: totals.taxAmount,
+                           total: totals.total
+                         }));
+                       }}
+                     >
+                       Select All
+                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTimeEntries([]);
+                        setInvoiceForm(prev => ({ ...prev, items: [], subtotal: 0, taxAmount: 0, total: 0 }));
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">Select</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Rate</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {timeEntries
+                        .filter(entry => !entry.isRunning)
+                        .map((entry) => (
+                          <TableRow key={entry.id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedTimeEntries.includes(entry.id)}
+                                onCheckedChange={(checked) => 
+                                  handleTimeEntrySelection(entry.id, checked as boolean)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>{entry.description || 'No description'}</TableCell>
+                            <TableCell>{entry.client || 'No client'}</TableCell>
+                            <TableCell className="font-mono">{formatTime(entry.duration)}</TableCell>
+                            <TableCell>{formatCurrency(entry.hourlyRate)}</TableCell>
+                            <TableCell>{formatCurrency(entry.totalAmount)}</TableCell>
+                            <TableCell>{entry.date.toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {timeEntries.filter(entry => !entry.isRunning).length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No completed time entries available.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Invoice Calculations */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label>Tax Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={invoiceForm.taxRate}
+                      onChange={(e) => {
+                        const taxRate = parseFloat(e.target.value) || 0;
+                        setInvoiceForm(prev => ({ ...prev, taxRate }));
+                        
+                        // Recalculate totals
+                        const selectedEntries = timeEntries.filter(entry => 
+                          selectedTimeEntries.includes(entry.id)
+                        );
+                        const totals = calculateInvoiceTotals(selectedEntries);
+                        setInvoiceForm(prev => ({ 
+                          ...prev, 
+                          taxRate,
+                          taxAmount: totals.taxAmount,
+                          total: totals.total 
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label>Discount Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={invoiceForm.discountRate}
+                      onChange={(e) => {
+                        const discountRate = parseFloat(e.target.value) || 0;
+                        setInvoiceForm(prev => ({ ...prev, discountRate }));
+                        
+                        // Recalculate totals
+                        const selectedEntries = timeEntries.filter(entry => 
+                          selectedTimeEntries.includes(entry.id)
+                        );
+                        const totals = calculateInvoiceTotals(selectedEntries);
+                        setInvoiceForm(prev => ({ 
+                          ...prev, 
+                          discountRate,
+                          discountAmount: totals.discountAmount,
+                          taxAmount: totals.taxAmount,
+                          total: totals.total 
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">{formatCurrency(invoiceForm.subtotal)}</span>
+                  </div>
+                  {invoiceForm.discountRate > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Discount ({invoiceForm.discountRate}%):</span>
+                      <span className="font-mono">-{formatCurrency(invoiceForm.discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Tax ({invoiceForm.taxRate}%):</span>
+                    <span className="font-mono">{formatCurrency(invoiceForm.taxAmount)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="font-mono">{formatCurrency(invoiceForm.total)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes and Terms */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={invoiceForm.notes}
+                    onChange={(e) => setInvoiceForm(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional notes for the client..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Terms & Conditions</Label>
+                  <Textarea
+                    value={invoiceForm.terms}
+                    onChange={(e) => setInvoiceForm(prev => ({ ...prev, terms: e.target.value }))}
+                    placeholder="Payment terms and conditions..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCreateInvoice(false)}
+                >
+                  Cancel
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setInvoiceForm(prev => ({ ...prev, status: 'draft' }));
+                      saveInvoice();
+                    }}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setInvoiceForm(prev => ({ ...prev, status: 'sent' }));
+                      saveInvoice();
+                    }}
+                  >
+                    Create & Send Invoice
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Travel Invoice Dialog */}
+        <Dialog open={showCreateTravelInvoice} onOpenChange={setShowCreateTravelInvoice}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Route size={20} />
+                Create Invoice from Travel Entries
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Invoice Details */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Invoice Number *</Label>
+                  <Input
+                    value={travelInvoiceForm.number}
+                    onChange={(e) => setTravelInvoiceForm(prev => ({ ...prev, number: e.target.value }))}
+                    placeholder="TRV-2024-001"
+                  />
+                </div>
+                <div>
+                  <Label>Status</Label>
+                  <Select 
+                    value={travelInvoiceForm.status} 
+                    onValueChange={(value: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled') => setTravelInvoiceForm(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Client and Case Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Client *</Label>
+                  <Select 
+                    value={travelInvoiceForm.clientId} 
+                    onValueChange={handleTravelClientChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockClients.map(client => (
+                        <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Case (Optional)</Label>
+                  <Select 
+                    value={travelInvoiceForm.caseId} 
+                    onValueChange={handleTravelCaseChange}
+                    disabled={!travelInvoiceForm.clientId}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select case..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockCases
+                        .filter(case_ => case_.clientId === travelInvoiceForm.clientId)
+                        .map(case_ => (
+                          <SelectItem key={case_.id} value={case_.id}>{case_.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Invoice Date</Label>
+                  <Input
+                    type="date"
+                    value={travelInvoiceForm.date}
+                    onChange={(e) => setTravelInvoiceForm(prev => ({ ...prev, date: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={travelInvoiceForm.dueDate}
+                    onChange={(e) => setTravelInvoiceForm(prev => ({ ...prev, dueDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Travel Entries Selection */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <Label className="text-base font-semibold">Select Travel Entries</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const allIds = travelEntries.map(entry => entry.id);
+                        setSelectedTravelEntries(allIds);
+                        
+                        // Update invoice form with all entries
+                        const items = travelEntries.map(entry => ({
+                          description: `Travel: ${entry.from} to ${entry.to} - ${entry.clientName}`,
+                          quantity: 1,
+                          rate: entry.overallTotal,
+                          amount: entry.overallTotal
+                        }));
+
+                        const totals = calculateTravelInvoiceTotals(travelEntries);
+                        
+                        setTravelInvoiceForm(prev => ({
+                          ...prev,
+                          items,
+                          selectedTravelEntries: allIds,
+                          subtotal: totals.subtotal,
+                          discountAmount: totals.discountAmount,
+                          taxAmount: totals.taxAmount,
+                          total: totals.total
+                        }));
+                      }}
+                    >
+                      Select All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedTravelEntries([]);
+                        setTravelInvoiceForm(prev => ({ ...prev, items: [], subtotal: 0, taxAmount: 0, total: 0 }));
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">Select</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Route</TableHead>
+                        <TableHead>Distance</TableHead>
+                        <TableHead>Hours</TableHead>
+                        <TableHead>Total Amount</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {travelEntries.map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedTravelEntries.includes(entry.id)}
+                              onCheckedChange={(checked) => 
+                                handleTravelEntrySelection(entry.id, checked as boolean)
+                              }
+                            />
+                          </TableCell>
+                          <TableCell>{entry.clientName}</TableCell>
+                          <TableCell>{entry.from} → {entry.to}</TableCell>
+                          <TableCell>{entry.totalKm}km</TableCell>
+                          <TableCell>{entry.hoursSpent}h</TableCell>
+                          <TableCell className="font-bold">{formatCurrency(entry.overallTotal)}</TableCell>
+                          <TableCell>{entry.date.toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {travelEntries.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      No travel entries available.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Invoice Calculations */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label>Tax Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={travelInvoiceForm.taxRate}
+                      onChange={(e) => {
+                        const taxRate = parseFloat(e.target.value) || 0;
+                        setTravelInvoiceForm(prev => ({ ...prev, taxRate }));
+                        
+                        // Recalculate totals
+                        const selectedEntries = travelEntries.filter(entry => 
+                          selectedTravelEntries.includes(entry.id)
+                        );
+                        const totals = calculateTravelInvoiceTotals(selectedEntries);
+                        setTravelInvoiceForm(prev => ({ 
+                          ...prev, 
+                          taxRate,
+                          taxAmount: totals.taxAmount,
+                          total: totals.total 
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label>Discount Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={travelInvoiceForm.discountRate}
+                      onChange={(e) => {
+                        const discountRate = parseFloat(e.target.value) || 0;
+                        setTravelInvoiceForm(prev => ({ ...prev, discountRate }));
+                        
+                        // Recalculate totals
+                        const selectedEntries = travelEntries.filter(entry => 
+                          selectedTravelEntries.includes(entry.id)
+                        );
+                        const totals = calculateTravelInvoiceTotals(selectedEntries);
+                        setTravelInvoiceForm(prev => ({ 
+                          ...prev, 
+                          discountRate,
+                          discountAmount: totals.discountAmount,
+                          taxAmount: totals.taxAmount,
+                          total: totals.total 
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">{formatCurrency(travelInvoiceForm.subtotal)}</span>
+                  </div>
+                  {travelInvoiceForm.discountRate > 0 && (
+                    <div className="flex justify-between text-red-600">
+                      <span>Discount ({travelInvoiceForm.discountRate}%):</span>
+                      <span className="font-mono">-{formatCurrency(travelInvoiceForm.discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Tax ({travelInvoiceForm.taxRate}%):</span>
+                    <span className="font-mono">{formatCurrency(travelInvoiceForm.taxAmount)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="font-mono">{formatCurrency(travelInvoiceForm.total)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes and Terms */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={travelInvoiceForm.notes}
+                    onChange={(e) => setTravelInvoiceForm(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional notes for the client..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Terms & Conditions</Label>
+                  <Textarea
+                    value={travelInvoiceForm.terms}
+                    onChange={(e) => setTravelInvoiceForm(prev => ({ ...prev, terms: e.target.value }))}
+                    placeholder="Payment terms and conditions..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCreateTravelInvoice(false)}
+                >
+                  Cancel
+                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setTravelInvoiceForm(prev => ({ ...prev, status: 'draft' }));
+                      saveTravelInvoice();
+                    }}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setTravelInvoiceForm(prev => ({ ...prev, status: 'sent' }));
+                      saveTravelInvoice();
+                    }}
+                  >
+                    Create & Send Invoice
+                  </Button>
+                </div>
               </div>
             </div>
           </DialogContent>

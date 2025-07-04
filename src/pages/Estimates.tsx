@@ -134,21 +134,213 @@ interface EstimateHistoryEntry {
   userName: string;
 }
 
+// Mock Data (moved before component to avoid hoisting issues)
+const clients = ['Clinsmen', 'ABC Corp', 'XYZ Ltd', 'Legal Partners', 'Tech Solutions'];
+const cases = ['Contract Review', 'Litigation Case', 'M&A Transaction', 'Compliance Audit'];
+const currencies = ['ZAR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY'];
+const languages = [
+  { code: 'en', name: 'English' },
+  { code: 'af', name: 'Afrikaans' },
+  { code: 'zu', name: 'Zulu' },
+  { code: 'xh', name: 'Xhosa' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'it', name: 'Italian' },
+  { code: 'nl', name: 'Dutch' }
+];
+
+// Default templates
+const defaultTemplates: EstimateTemplate[] = [
+  {
+    id: '1',
+    name: 'Professional',
+    primaryColor: '#2563eb',
+    fontFamily: 'Inter',
+    showBankingDetails: true,
+    customColumns: {
+      quantity: 'Quantity',
+      rate: 'Rate',
+      description: 'Description',
+      item: 'Item'
+    }
+  },
+  {
+    id: '2',
+    name: 'Modern',
+    primaryColor: '#059669',
+    fontFamily: 'Roboto',
+    showBankingDetails: false,
+    customColumns: {
+      quantity: 'Qty',
+      rate: 'Price',
+      description: 'Details',
+      item: 'Product'
+    }
+  },
+  {
+    id: '3',
+    name: 'Classic',
+    primaryColor: '#dc2626',
+    fontFamily: 'Times New Roman',
+    showBankingDetails: true,
+    customColumns: {
+      quantity: 'Weight',
+      rate: 'Rate per Unit',
+      description: 'Specification',
+      item: 'Service'
+    }
+  },
+  {
+    id: '4',
+    name: 'Minimal',
+    primaryColor: '#7c3aed',
+    fontFamily: 'Arial',
+    showBankingDetails: false,
+    customColumns: {
+      quantity: 'Amount',
+      rate: 'Cost',
+      description: 'Description',
+      item: 'Item'
+    }
+  },
+  {
+    id: '5',
+    name: 'Corporate',
+    primaryColor: '#ea580c',
+    fontFamily: 'Helvetica',
+    showBankingDetails: true,
+    customColumns: {
+      quantity: 'Quantity',
+      rate: 'Unit Price',
+      description: 'Description',
+      item: 'Product/Service'
+    }
+  }
+];
+
+// Mock estimates for demonstration
+const mockEstimates: Estimate[] = [
+  {
+    id: '1',
+    estimateNumber: 'EST-2024-001',
+    title: 'Legal Consultation Services',
+    clientId: '1',
+    clientName: 'ABC Corp',
+    clientEmail: 'contact@abccorp.com',
+    issueDate: new Date('2024-01-15'),
+    expiryDate: new Date('2024-02-15'),
+    status: 'pending',
+    items: [
+      {
+        id: '1',
+        description: 'Legal consultation hours',
+        quantity: 10,
+        rate: 500,
+        amount: 5000
+      }
+    ],
+    subtotal: 5000,
+    taxRate: 15,
+    taxAmount: 750,
+    total: 5750,
+    currency: 'ZAR',
+    notes: 'Initial legal consultation for contract review',
+    terms: 'Payment due within 30 days of acceptance',
+    templateId: '1',
+    isESignatureEnabled: true,
+    language: 'en',
+    createdBy: 'John Doe',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    history: [
+      {
+        id: '1',
+        action: 'created',
+        description: 'Estimate created',
+        timestamp: new Date(),
+        userId: '1',
+        userName: 'John Doe'
+      }
+    ]
+  },
+  {
+    id: '2',
+    estimateNumber: 'EST-2024-002',
+    title: 'Contract Drafting Services',
+    clientId: '2',
+    clientName: 'XYZ Ltd',
+    clientEmail: 'info@xyzltd.com',
+    issueDate: new Date('2024-01-14'),
+    expiryDate: new Date('2024-02-14'),
+    status: 'accepted',
+    items: [
+      {
+        id: '1',
+        description: 'Contract drafting and review',
+        quantity: 1,
+        rate: 12000,
+        amount: 12000
+      }
+    ],
+    subtotal: 12000,
+    taxRate: 15,
+    taxAmount: 1800,
+    total: 13800,
+    currency: 'ZAR',
+    notes: 'Comprehensive contract drafting service',
+    terms: 'Payment due within 30 days of acceptance',
+    templateId: '2',
+    isESignatureEnabled: true,
+    language: 'en',
+    signatureUrl: '/signatures/est-002-signature.png',
+    signedDate: new Date('2024-01-16'),
+    signedBy: 'Jane Smith, XYZ Ltd',
+    createdBy: 'Sarah Wilson',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    history: [
+      {
+        id: '1',
+        action: 'created',
+        description: 'Estimate created',
+        timestamp: new Date('2024-01-14'),
+        userId: '2',
+        userName: 'Sarah Wilson'
+      },
+      {
+        id: '2',
+        action: 'signed',
+        description: 'Estimate signed by client',
+        timestamp: new Date('2024-01-16'),
+        userId: '2',
+        userName: 'Jane Smith'
+      }
+    ]
+  }
+];
+
 const Estimates = () => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // State Management
-  const [estimates, setEstimates] = useState<Estimate[]>([]);
-  const [filteredEstimates, setFilteredEstimates] = useState<Estimate[]>([]);
-  const [templates, setTemplates] = useState<EstimateTemplate[]>([]);
+  const [estimates, setEstimates] = useState<Estimate[]>(mockEstimates);
+  const [filteredEstimates, setFilteredEstimates] = useState<Estimate[]>(mockEstimates);
+  const [templates, setTemplates] = useState<EstimateTemplate[]>(defaultTemplates);
   const [showEstimateDialog, setShowEstimateDialog] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showConvertToInvoiceDialog, setShowConvertToInvoiceDialog] = useState(false);
+  const [showConvertToCaseDialog, setShowConvertToCaseDialog] = useState(false);
+  const [showAssignToCaseDialog, setShowAssignToCaseDialog] = useState(false);
   const [editingEstimate, setEditingEstimate] = useState<Estimate | null>(null);
   const [viewingEstimate, setViewingEstimate] = useState<Estimate | null>(null);
+  const [selectedEstimate, setSelectedEstimate] = useState<Estimate | null>(null);
   const [selectedEstimates, setSelectedEstimates] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -187,193 +379,6 @@ const Estimates = () => {
       routingNumber: ''
     }
   });
-
-  // Mock Data
-  const clients = ['Clinsmen', 'ABC Corp', 'XYZ Ltd', 'Legal Partners', 'Tech Solutions'];
-  const cases = ['Contract Review', 'Litigation Case', 'M&A Transaction', 'Compliance Audit'];
-  const currencies = ['ZAR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY'];
-  const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'af', name: 'Afrikaans' },
-    { code: 'zu', name: 'Zulu' },
-    { code: 'xh', name: 'Xhosa' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'pt', name: 'Portuguese' },
-    { code: 'it', name: 'Italian' },
-    { code: 'nl', name: 'Dutch' }
-  ];
-
-  // Default templates
-  const defaultTemplates: EstimateTemplate[] = [
-    {
-      id: '1',
-      name: 'Professional',
-      primaryColor: '#2563eb',
-      fontFamily: 'Inter',
-      showBankingDetails: true,
-      customColumns: {
-        quantity: 'Quantity',
-        rate: 'Rate',
-        description: 'Description',
-        item: 'Item'
-      }
-    },
-    {
-      id: '2',
-      name: 'Modern',
-      primaryColor: '#059669',
-      fontFamily: 'Roboto',
-      showBankingDetails: false,
-      customColumns: {
-        quantity: 'Qty',
-        rate: 'Price',
-        description: 'Details',
-        item: 'Product'
-      }
-    },
-    {
-      id: '3',
-      name: 'Classic',
-      primaryColor: '#dc2626',
-      fontFamily: 'Times New Roman',
-      showBankingDetails: true,
-      customColumns: {
-        quantity: 'Weight',
-        rate: 'Rate per Unit',
-        description: 'Specification',
-        item: 'Service'
-      }
-    },
-    {
-      id: '4',
-      name: 'Minimal',
-      primaryColor: '#7c3aed',
-      fontFamily: 'Arial',
-      showBankingDetails: false,
-      customColumns: {
-        quantity: 'Amount',
-        rate: 'Cost',
-        description: 'Description',
-        item: 'Item'
-      }
-    },
-    {
-      id: '5',
-      name: 'Corporate',
-      primaryColor: '#ea580c',
-      fontFamily: 'Helvetica',
-      showBankingDetails: true,
-      customColumns: {
-        quantity: 'Quantity',
-        rate: 'Unit Price',
-        description: 'Description',
-        item: 'Product/Service'
-      }
-    }
-  ];
-
-  // Mock estimates for demonstration
-  const mockEstimates: Estimate[] = [
-    {
-      id: '1',
-      estimateNumber: 'EST-2024-001',
-      title: 'Legal Consultation Services',
-      clientId: '1',
-      clientName: 'ABC Corp',
-      clientEmail: 'contact@abccorp.com',
-      issueDate: new Date('2024-01-15'),
-      expiryDate: new Date('2024-02-15'),
-      status: 'pending',
-      items: [
-        {
-          id: '1',
-          description: 'Legal consultation hours',
-          quantity: 10,
-          rate: 500,
-          amount: 5000
-        }
-      ],
-      subtotal: 5000,
-      taxRate: 15,
-      taxAmount: 750,
-      total: 5750,
-      currency: 'ZAR',
-      notes: 'Initial legal consultation for contract review',
-      terms: 'Payment due within 30 days of acceptance',
-      templateId: '1',
-      isESignatureEnabled: true,
-      language: 'en',
-      createdBy: 'John Doe',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      history: [
-        {
-          id: '1',
-          action: 'created',
-          description: 'Estimate created',
-          timestamp: new Date(),
-          userId: '1',
-          userName: 'John Doe'
-        }
-      ]
-    },
-    {
-      id: '2',
-      estimateNumber: 'EST-2024-002',
-      title: 'Contract Drafting Services',
-      clientId: '2',
-      clientName: 'XYZ Ltd',
-      clientEmail: 'info@xyzltd.com',
-      issueDate: new Date('2024-01-14'),
-      expiryDate: new Date('2024-02-14'),
-      status: 'accepted',
-      items: [
-        {
-          id: '1',
-          description: 'Contract drafting and review',
-          quantity: 1,
-          rate: 12000,
-          amount: 12000
-        }
-      ],
-      subtotal: 12000,
-      taxRate: 15,
-      taxAmount: 1800,
-      total: 13800,
-      currency: 'ZAR',
-      notes: 'Comprehensive contract drafting service',
-      terms: 'Payment due within 30 days of acceptance',
-      templateId: '2',
-      isESignatureEnabled: true,
-      language: 'en',
-      signatureUrl: '/signatures/est-002-signature.png',
-      signedDate: new Date('2024-01-16'),
-      signedBy: 'Jane Smith, XYZ Ltd',
-      createdBy: 'Sarah Wilson',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      history: [
-        {
-          id: '1',
-          action: 'created',
-          description: 'Estimate created',
-          timestamp: new Date('2024-01-14'),
-          userId: '2',
-          userName: 'Sarah Wilson'
-        },
-        {
-          id: '2',
-          action: 'signed',
-          description: 'Estimate signed by client',
-          timestamp: new Date('2024-01-16'),
-          userId: '2',
-          userName: 'Jane Smith'
-        }
-      ]
-    }
-  ];
 
   // Format currency
   const formatCurrency = (amount: number, currency: string = 'ZAR') => {
@@ -461,6 +466,314 @@ const Estimates = () => {
 
     setFilteredEstimates(filtered);
   }, [estimates, searchTerm, statusFilter, clientFilter]);
+
+  // Handler Functions for Actions Menu
+  const handleViewDetails = (estimate: Estimate) => {
+    setViewingEstimate(estimate);
+    setShowDetailsDialog(true);
+  };
+
+  const handleEditEstimate = (estimate: Estimate) => {
+    setEditingEstimate(estimate);
+    setEstimateForm({
+      title: estimate.title,
+      clientId: estimate.clientId,
+      clientName: estimate.clientName,
+      clientEmail: estimate.clientEmail,
+      issueDate: estimate.issueDate,
+      expiryDate: estimate.expiryDate,
+      items: estimate.items,
+      taxRate: estimate.taxRate,
+      notes: estimate.notes,
+      terms: estimate.terms,
+      currency: estimate.currency,
+      language: estimate.language,
+      templateId: estimate.templateId,
+      isESignatureEnabled: estimate.isESignatureEnabled,
+      shippingAddress: estimate.shippingAddress || {
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: ''
+      },
+      bankingDetails: estimate.bankingDetails || {
+        bankName: '',
+        accountName: '',
+        accountNumber: '',
+        routingNumber: ''
+      }
+    });
+    setShowEstimateDialog(true);
+  };
+
+  const handleDuplicateEstimate = (estimate: Estimate) => {
+    const newEstimate: Estimate = {
+      ...estimate,
+      id: `est_${Date.now()}`,
+      estimateNumber: `EST-2024-${String(estimates.length + 1).padStart(3, '0')}`,
+      status: 'draft',
+      issueDate: new Date(),
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      signatureUrl: undefined,
+      signedDate: undefined,
+      signedBy: undefined,
+      convertedToInvoice: false,
+      convertedToCaseId: undefined,
+      assignedToCaseId: undefined,
+      archivedAt: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      history: [
+        {
+          id: `hist_${Date.now()}`,
+          action: 'duplicated',
+          description: `Duplicated from estimate ${estimate.estimateNumber}`,
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => [...prev, newEstimate]);
+    setFilteredEstimates(prev => [...prev, newEstimate]);
+    
+    toast({
+      title: "Estimate Duplicated",
+      description: `Created duplicate estimate ${newEstimate.estimateNumber}`,
+    });
+  };
+
+  const handleConvertToInvoice = (estimate: Estimate) => {
+    setSelectedEstimate(estimate);
+    setShowConvertToInvoiceDialog(true);
+  };
+
+  const handleConvertToCase = (estimate: Estimate) => {
+    setSelectedEstimate(estimate);
+    setShowConvertToCaseDialog(true);
+  };
+
+  const handleAssignToCase = (estimate: Estimate) => {
+    setSelectedEstimate(estimate);
+    setShowAssignToCaseDialog(true);
+  };
+
+  const handleEmailToClient = (estimate: Estimate) => {
+    toast({
+      title: "Email Sent",
+      description: `Estimate ${estimate.estimateNumber} has been sent to ${estimate.clientEmail}`,
+    });
+    
+    // Update estimate history
+    const updatedEstimate = {
+      ...estimate,
+      history: [
+        ...estimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'emailed',
+          description: `Estimate emailed to ${estimate.clientEmail}`,
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+  };
+
+  const handlePrintEstimate = (estimate: Estimate) => {
+    toast({
+      title: "Print Job Sent",
+      description: `Estimate ${estimate.estimateNumber} sent to printer`,
+    });
+    
+    // Update estimate history
+    const updatedEstimate = {
+      ...estimate,
+      history: [
+        ...estimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'printed',
+          description: 'Estimate sent to printer',
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+  };
+
+  const handleDownloadPDF = (estimate: Estimate) => {
+    toast({
+      title: "Download Started",
+      description: `Downloading estimate ${estimate.estimateNumber} as PDF...`,
+    });
+    
+    // Update estimate history
+    const updatedEstimate = {
+      ...estimate,
+      history: [
+        ...estimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'downloaded',
+          description: 'Estimate downloaded as PDF',
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+  };
+
+  const handleViewHistory = (estimate: Estimate) => {
+    setViewingEstimate(estimate);
+    setShowHistoryDialog(true);
+  };
+
+  const handleArchiveEstimate = (estimate: Estimate) => {
+    const updatedEstimate = {
+      ...estimate,
+      archivedAt: new Date(),
+      history: [
+        ...estimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'archived',
+          description: 'Estimate archived',
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === estimate.id ? updatedEstimate : est));
+    
+    toast({
+      title: "Estimate Archived",
+      description: `Estimate ${estimate.estimateNumber} has been archived`,
+    });
+  };
+
+  const handleDeleteEstimate = (estimate: Estimate) => {
+    if (window.confirm(`Are you sure you want to delete estimate ${estimate.estimateNumber}?`)) {
+      setEstimates(prev => prev.filter(est => est.id !== estimate.id));
+      setFilteredEstimates(prev => prev.filter(est => est.id !== estimate.id));
+      
+      toast({
+        title: "Estimate Deleted",
+        description: `Estimate ${estimate.estimateNumber} has been deleted`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const confirmConvertToInvoice = () => {
+    if (!selectedEstimate) return;
+    
+    const updatedEstimate = {
+      ...selectedEstimate,
+      convertedToInvoice: true,
+      history: [
+        ...selectedEstimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'converted_to_invoice',
+          description: 'Estimate converted to invoice',
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    
+    toast({
+      title: "Converted to Invoice",
+      description: `Estimate ${selectedEstimate.estimateNumber} has been converted to an invoice`,
+    });
+    
+    setShowConvertToInvoiceDialog(false);
+    setSelectedEstimate(null);
+  };
+
+  const confirmConvertToCase = (selectedCase: string) => {
+    if (!selectedEstimate || !selectedCase) return;
+    
+    const updatedEstimate = {
+      ...selectedEstimate,
+      convertedToCaseId: selectedCase,
+      history: [
+        ...selectedEstimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'converted_to_case',
+          description: `Estimate converted to case: ${selectedCase}`,
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    
+    toast({
+      title: "Converted to Case",
+      description: `Estimate ${selectedEstimate.estimateNumber} has been converted to case: ${selectedCase}`,
+    });
+    
+    setShowConvertToCaseDialog(false);
+    setSelectedEstimate(null);
+  };
+
+  const confirmAssignToCase = (selectedCase: string) => {
+    if (!selectedEstimate || !selectedCase) return;
+    
+    const updatedEstimate = {
+      ...selectedEstimate,
+      assignedToCaseId: selectedCase,
+      history: [
+        ...selectedEstimate.history,
+        {
+          id: `hist_${Date.now()}`,
+          action: 'assigned_to_case',
+          description: `Estimate assigned to case: ${selectedCase}`,
+          timestamp: new Date(),
+          userId: '1',
+          userName: 'Current User'
+        }
+      ]
+    };
+    
+    setEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    setFilteredEstimates(prev => prev.map(est => est.id === selectedEstimate.id ? updatedEstimate : est));
+    
+    toast({
+      title: "Assigned to Case",
+      description: `Estimate ${selectedEstimate.estimateNumber} has been assigned to case: ${selectedCase}`,
+    });
+    
+    setShowAssignToCaseDialog(false);
+    setSelectedEstimate(null);
+  };
 
   return (
     <DashboardLayout title="Estimates & Quotes">
@@ -655,54 +968,54 @@ const Estimates = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewDetails(estimate)}>
                                 <Eye size={14} className="mr-2" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditEstimate(estimate)}>
                                 <Edit size={14} className="mr-2" />
                                 Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDuplicateEstimate(estimate)}>
                                 <Copy size={14} className="mr-2" />
                                 Duplicate
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleConvertToInvoice(estimate)}>
                                 <Receipt size={14} className="mr-2" />
                                 Convert to Invoice
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleConvertToCase(estimate)}>
                                 <Briefcase size={14} className="mr-2" />
                                 Convert to Case
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleAssignToCase(estimate)}>
                                 <Briefcase size={14} className="mr-2" />
                                 Assign to Case
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEmailToClient(estimate)}>
                                 <Mail size={14} className="mr-2" />
                                 Email to Client
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePrintEstimate(estimate)}>
                                 <Printer size={14} className="mr-2" />
                                 Print
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadPDF(estimate)}>
                                 <Download size={14} className="mr-2" />
                                 Download PDF
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewHistory(estimate)}>
                                 <History size={14} className="mr-2" />
                                 View History
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleArchiveEstimate(estimate)}>
                                 <Archive size={14} className="mr-2" />
                                 Archive
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600 focus:text-red-600">
+                              <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => handleDeleteEstimate(estimate)}>
                                 <Trash2 size={14} className="mr-2" />
                                 Delete
                               </DropdownMenuItem>
@@ -1456,6 +1769,202 @@ const Estimates = () => {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Details Dialog */}
+        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye size={20} />
+                Estimate Details - {viewingEstimate?.estimateNumber}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {viewingEstimate && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold mb-2">Basic Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Title:</strong> {viewingEstimate.title}</p>
+                      <p><strong>Client:</strong> {viewingEstimate.clientName}</p>
+                      <p><strong>Email:</strong> {viewingEstimate.clientEmail}</p>
+                      <p><strong>Issue Date:</strong> {viewingEstimate.issueDate.toLocaleDateString()}</p>
+                      <p><strong>Expiry Date:</strong> {viewingEstimate.expiryDate.toLocaleDateString()}</p>
+                      <p><strong>Status:</strong> <Badge className={getStatusColor(viewingEstimate.status)}>{viewingEstimate.status}</Badge></p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Financial Summary</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Subtotal:</strong> {formatCurrency(viewingEstimate.subtotal, viewingEstimate.currency)}</p>
+                      <p><strong>Tax ({viewingEstimate.taxRate}%):</strong> {formatCurrency(viewingEstimate.taxAmount, viewingEstimate.currency)}</p>
+                      <p className="text-lg font-bold"><strong>Total:</strong> {formatCurrency(viewingEstimate.total, viewingEstimate.currency)}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold mb-2">Items</h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Rate</TableHead>
+                        <TableHead>Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {viewingEstimate.items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>{item.description}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{formatCurrency(item.rate, viewingEstimate.currency)}</TableCell>
+                          <TableCell>{formatCurrency(item.amount, viewingEstimate.currency)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {viewingEstimate.notes && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Notes</h3>
+                    <p className="text-sm bg-gray-50 p-3 rounded">{viewingEstimate.notes}</p>
+                  </div>
+                )}
+                
+                {viewingEstimate.terms && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Terms & Conditions</h3>
+                    <p className="text-sm bg-gray-50 p-3 rounded">{viewingEstimate.terms}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* View History Dialog */}
+        <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History size={20} />
+                Estimate History - {viewingEstimate?.estimateNumber}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {viewingEstimate && (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {viewingEstimate.history.map((entry) => (
+                  <div key={entry.id} className="border-l-4 border-blue-500 pl-4 pb-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold capitalize">{entry.action}</h4>
+                        <p className="text-sm text-gray-600">{entry.description}</p>
+                        <p className="text-xs text-gray-500">by {entry.userName}</p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {entry.timestamp.toLocaleDateString()} {entry.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Convert to Invoice Dialog */}
+        <Dialog open={showConvertToInvoiceDialog} onOpenChange={setShowConvertToInvoiceDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Convert to Invoice</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <p>Are you sure you want to convert estimate <strong>{selectedEstimate?.estimateNumber}</strong> to an invoice?</p>
+              <p className="text-sm text-gray-600">This action will create a new invoice with the same details and mark this estimate as converted.</p>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConvertToInvoiceDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmConvertToInvoice}>
+                  Convert to Invoice
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Convert to Case Dialog */}
+        <Dialog open={showConvertToCaseDialog} onOpenChange={setShowConvertToCaseDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Convert to Case</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <p>Convert estimate <strong>{selectedEstimate?.estimateNumber}</strong> to a case:</p>
+              
+              <div>
+                <Label htmlFor="case-select">Select Case Type</Label>
+                <Select onValueChange={confirmConvertToCase}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose case type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cases.map(caseType => (
+                      <SelectItem key={caseType} value={caseType}>{caseType}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConvertToCaseDialog(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Assign to Case Dialog */}
+        <Dialog open={showAssignToCaseDialog} onOpenChange={setShowAssignToCaseDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign to Case</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <p>Assign estimate <strong>{selectedEstimate?.estimateNumber}</strong> to an existing case:</p>
+              
+              <div>
+                <Label htmlFor="existing-case-select">Select Existing Case</Label>
+                <Select onValueChange={confirmAssignToCase}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose existing case..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cases.map(caseType => (
+                      <SelectItem key={caseType} value={caseType}>{caseType}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowAssignToCaseDialog(false)}>
+                  Cancel
+                </Button>
               </div>
             </div>
           </DialogContent>

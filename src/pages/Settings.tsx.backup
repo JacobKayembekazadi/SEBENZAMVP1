@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,8 +71,7 @@ import {
   Save,
   TestTube,
   ArrowUpDown,
-  MousePointer,
-  Calculator
+  MousePointer
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -199,27 +198,6 @@ interface Integration {
   updatedAt: Date;
 }
 
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  unit: string;
-  category: string;
-  isActive: boolean;
-  usage: number;
-  defaultTax: number;
-  analytics?: {
-    totalRevenue: number;
-    totalUsage: number;
-    averagePrice: number;
-    monthlyGrowth: number;
-    lastUsed: Date;
-  };
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 interface EmailTemplate {
   id: string;
   name: string;
@@ -256,24 +234,6 @@ interface EmailTemplate {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
-}
-
-interface SupportTicket {
-  id: string;
-  title: string;
-  description: string;
-  priority: 'low' | 'medium' | 'high';
-  status: 'open' | 'in-progress' | 'resolved';
-  category: string;
-  assignee: string;
-  responses: number;
-  createdAt: Date;
-  updatedAt: Date;
-  analytics?: {
-    responseTimeAvg: number; // in hours
-    resolutionTimeAvg: number; // in hours
-    satisfactionRate: number; // percentage
-  };
 }
 
 const Settings = () => {
@@ -939,70 +899,337 @@ Best regards,
     }
   ]);
 
+// Service Interface
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  category: 'Consultation' | 'Documentation' | 'Litigation' | 'Research' | 'Compliance' | 'Corporate' | 'Family' | 'Criminal' | 'Property' | 'Other';
+  price: number;
+  unit: 'hour' | 'document' | 'appearance' | 'case' | 'fixed' | 'consultation' | 'page' | 'review';
+  isActive: boolean;
+  usage: number;
+  defaultTax: number;
+  billable: boolean;
+  estimatedDuration?: number; // in hours
+  requirements?: string[];
+  tags?: string[];
+  pricing?: {
+    standardRate: number;
+    discountRate?: number;
+    premiumRate?: number;
+    minimumCharge?: number;
+    maximumCharge?: number;
+  };
+  analytics?: {
+    totalRevenue: number;
+    averageValue: number;
+    completionRate: number;
+    clientSatisfaction: number;
+    monthlyUsage: number;
+    yearlyUsage: number;
+    lastUsed: Date;
+  };
+  settings?: {
+    autoInvoice: boolean;
+    requireApproval: boolean;
+    trackTime: boolean;
+    allowDiscounts: boolean;
+    clientVisible: boolean;
+  };
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastModifiedBy: string;
+}
+
   const [services, setServices] = useState<Service[]>([
     {
       id: '1',
       name: 'Legal Consultation',
       description: 'Initial consultation and legal advice',
+      category: 'Consultation',
       price: 500,
       unit: 'hour',
-      category: 'Consultation',
       isActive: true,
       usage: 45,
       defaultTax: 15,
+      billable: true,
+      estimatedDuration: 1,
+      requirements: ['Client intake form', 'Identification documents'],
+      tags: ['consultation', 'initial', 'advice'],
+      pricing: {
+        standardRate: 500,
+        discountRate: 400,
+        premiumRate: 650,
+        minimumCharge: 250
+      },
       analytics: {
         totalRevenue: 22500,
-        totalUsage: 45,
-        averagePrice: 500,
-        monthlyGrowth: 8.5,
-        lastUsed: new Date('2024-01-15')
+        averageValue: 500,
+        completionRate: 95,
+        clientSatisfaction: 4.8,
+        monthlyUsage: 45,
+        yearlyUsage: 540,
+        lastUsed: new Date('2024-01-30')
       },
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-15')
+      settings: {
+        autoInvoice: true,
+        requireApproval: false,
+        trackTime: true,
+        allowDiscounts: true,
+        clientVisible: true
+      },
+      createdBy: 'John Doe',
+      createdAt: new Date('2023-01-15'),
+      updatedAt: new Date('2024-01-30'),
+      lastModifiedBy: 'John Doe'
     },
     {
       id: '2',
       name: 'Contract Drafting',
       description: 'Professional contract preparation and review',
+      category: 'Documentation',
       price: 1200,
       unit: 'document',
-      category: 'Documentation',
       isActive: true,
       usage: 32,
       defaultTax: 15,
+      billable: true,
+      estimatedDuration: 4,
+      requirements: ['Contract specifications', 'Legal requirements', 'Client approval'],
+      tags: ['contract', 'drafting', 'legal-document'],
+      pricing: {
+        standardRate: 1200,
+        discountRate: 1000,
+        premiumRate: 1500,
+        minimumCharge: 800,
+        maximumCharge: 3000
+      },
       analytics: {
         totalRevenue: 38400,
-        totalUsage: 32,
-        averagePrice: 1200,
-        monthlyGrowth: 12.3,
-        lastUsed: new Date('2024-01-14')
+        averageValue: 1200,
+        completionRate: 92,
+        clientSatisfaction: 4.7,
+        monthlyUsage: 32,
+        yearlyUsage: 384,
+        lastUsed: new Date('2024-01-28')
       },
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-14')
+      settings: {
+        autoInvoice: true,
+        requireApproval: true,
+        trackTime: true,
+        allowDiscounts: true,
+        clientVisible: true
+      },
+      createdBy: 'Jane Smith',
+      createdAt: new Date('2023-02-01'),
+      updatedAt: new Date('2024-01-28'),
+      lastModifiedBy: 'Jane Smith'
     },
     {
       id: '3',
       name: 'Court Representation',
       description: 'Legal representation in court proceedings',
+      category: 'Litigation',
       price: 800,
       unit: 'appearance',
-      category: 'Litigation',
       isActive: true,
       usage: 18,
       defaultTax: 15,
+      billable: true,
+      estimatedDuration: 8,
+      requirements: ['Case preparation', 'Client briefing', 'Court documents'],
+      tags: ['court', 'litigation', 'representation'],
+      pricing: {
+        standardRate: 800,
+        discountRate: 650,
+        premiumRate: 1000,
+        minimumCharge: 400
+      },
       analytics: {
         totalRevenue: 14400,
-        totalUsage: 18,
-        averagePrice: 800,
-        monthlyGrowth: 5.2,
-        lastUsed: new Date('2024-01-12')
+        averageValue: 800,
+        completionRate: 88,
+        clientSatisfaction: 4.9,
+        monthlyUsage: 18,
+        yearlyUsage: 216,
+        lastUsed: new Date('2024-01-25')
       },
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-12')
+      settings: {
+        autoInvoice: false,
+        requireApproval: true,
+        trackTime: true,
+        allowDiscounts: false,
+        clientVisible: true
+      },
+      createdBy: 'Michael Johnson',
+      createdAt: new Date('2023-03-10'),
+      updatedAt: new Date('2024-01-25'),
+      lastModifiedBy: 'Michael Johnson'
+    },
+    {
+      id: '4',
+      name: 'Legal Research',
+      description: 'Comprehensive legal research and analysis',
+      category: 'Research',
+      price: 300,
+      unit: 'hour',
+      isActive: true,
+      usage: 67,
+      defaultTax: 15,
+      billable: true,
+      estimatedDuration: 2,
+      requirements: ['Research scope', 'Access to legal databases'],
+      tags: ['research', 'analysis', 'legal-precedent'],
+      pricing: {
+        standardRate: 300,
+        discountRate: 250,
+        premiumRate: 400,
+        minimumCharge: 150
+      },
+      analytics: {
+        totalRevenue: 20100,
+        averageValue: 300,
+        completionRate: 97,
+        clientSatisfaction: 4.6,
+        monthlyUsage: 67,
+        yearlyUsage: 804,
+        lastUsed: new Date('2024-01-31')
+      },
+      settings: {
+        autoInvoice: true,
+        requireApproval: false,
+        trackTime: true,
+        allowDiscounts: true,
+        clientVisible: false
+      },
+      createdBy: 'Sarah Wilson',
+      createdAt: new Date('2023-04-20'),
+      updatedAt: new Date('2024-01-31'),
+      lastModifiedBy: 'Sarah Wilson'
+    },
+    {
+      id: '5',
+      name: 'Document Review',
+      description: 'Thorough review and analysis of legal documents',
+      category: 'Documentation',
+      price: 200,
+      unit: 'page',
+      isActive: false,
+      usage: 12,
+      defaultTax: 15,
+      billable: true,
+      estimatedDuration: 0.5,
+      requirements: ['Document copies', 'Review checklist'],
+      tags: ['review', 'document-analysis', 'compliance'],
+      pricing: {
+        standardRate: 200,
+        discountRate: 150,
+        premiumRate: 250,
+        minimumCharge: 500
+      },
+      analytics: {
+        totalRevenue: 2400,
+        averageValue: 200,
+        completionRate: 85,
+        clientSatisfaction: 4.3,
+        monthlyUsage: 12,
+        yearlyUsage: 144,
+        lastUsed: new Date('2023-12-15')
+      },
+      settings: {
+        autoInvoice: false,
+        requireApproval: true,
+        trackTime: true,
+        allowDiscounts: true,
+        clientVisible: true
+      },
+      createdBy: 'David Brown',
+      createdAt: new Date('2023-05-15'),
+      updatedAt: new Date('2023-12-15'),
+      lastModifiedBy: 'David Brown'
+    },
+    {
+      id: '6',
+      name: 'Compliance Audit',
+      description: 'Comprehensive compliance review and audit services',
+      category: 'Compliance',
+      price: 2500,
+      unit: 'fixed',
+      isActive: true,
+      usage: 8,
+      defaultTax: 15,
+      billable: true,
+      estimatedDuration: 16,
+      requirements: ['Company records', 'Regulatory documentation', 'Access to systems'],
+      tags: ['compliance', 'audit', 'regulatory'],
+      pricing: {
+        standardRate: 2500,
+        discountRate: 2000,
+        premiumRate: 3000,
+        minimumCharge: 2500
+      },
+      analytics: {
+        totalRevenue: 20000,
+        averageValue: 2500,
+        completionRate: 90,
+        clientSatisfaction: 4.8,
+        monthlyUsage: 8,
+        yearlyUsage: 96,
+        lastUsed: new Date('2024-01-20')
+      },
+      settings: {
+        autoInvoice: false,
+        requireApproval: true,
+        trackTime: true,
+        allowDiscounts: false,
+        clientVisible: true
+      },
+      createdBy: 'Lisa Anderson',
+      createdAt: new Date('2023-06-01'),
+      updatedAt: new Date('2024-01-20'),
+      lastModifiedBy: 'Lisa Anderson'
     }
   ]);
 
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([
+  // NEW: Persist Services to localStorage and load them on mount
+  useEffect(() => {
+    // Load existing services from localStorage on initial mount
+    const stored = localStorage.getItem('services');
+    if (stored) {
+      try {
+        const parsed: Service[] = JSON.parse(stored);
+        // Convert string dates back to Date objects for correct rendering
+        const hydrated = parsed.map((s) => ({
+          ...s,
+          createdAt: new Date(s.createdAt),
+          updatedAt: new Date(s.updatedAt),
+          analytics: s.analytics
+            ? { ...s.analytics, lastUsed: new Date((s.analytics as any).lastUsed) }
+            : undefined,
+        }));
+        setServices(hydrated);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[Settings] Failed to parse services from localStorage', err);
+      }
+    }
+    // We only want this to run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Save services to localStorage whenever they change
+    try {
+      localStorage.setItem('services', JSON.stringify(services));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[Settings] Failed to persist services to localStorage', err);
+    }
+  }, [services]);
+
+  const [supportTickets, setSupportTickets] = useState([
     {
       id: '1',
       title: 'Payment gateway integration issue',
@@ -1010,15 +1237,10 @@ Best regards,
       priority: 'high',
       status: 'in-progress',
       category: 'Payment',
-      assignee: 'Support Team',
-      responses: 3,
       createdAt: new Date('2024-01-15T14:30:00'),
       updatedAt: new Date('2024-01-16T09:15:00'),
-      analytics: {
-        responseTimeAvg: 0,
-        resolutionTimeAvg: 0,
-        satisfactionRate: 0
-      }
+      assignee: 'Support Team',
+      responses: 3
     },
     {
       id: '2',
@@ -1027,15 +1249,10 @@ Best regards,
       priority: 'medium',
       status: 'open',
       category: 'Email',
-      assignee: 'Unassigned',
-      responses: 0,
       createdAt: new Date('2024-01-14T11:20:00'),
       updatedAt: new Date('2024-01-14T11:20:00'),
-      analytics: {
-        responseTimeAvg: 0,
-        resolutionTimeAvg: 0,
-        satisfactionRate: 0
-      }
+      assignee: 'Unassigned',
+      responses: 0
     },
     {
       id: '3',
@@ -1044,15 +1261,10 @@ Best regards,
       priority: 'low',
       status: 'resolved',
       category: 'Banking',
-      assignee: 'Technical Support',
-      responses: 5,
       createdAt: new Date('2024-01-10T16:45:00'),
       updatedAt: new Date('2024-01-12T10:30:00'),
-      analytics: {
-        responseTimeAvg: 0,
-        resolutionTimeAvg: 0,
-        satisfactionRate: 0
-      }
+      assignee: 'Technical Support',
+      responses: 5
     }
   ]);
 
@@ -1063,7 +1275,24 @@ Best regards,
   const [showIntegrationDialog, setShowIntegrationDialog] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [showServiceDialog, setShowServiceDialog] = useState(false);
-
+  const [showTicketDialog, setShowTicketDialog] = useState(false);
+  
+  // Service Dialog States
+  const [showServiceDetailsDialog, setShowServiceDetailsDialog] = useState(false);
+  const [showServiceAnalyticsDialog, setShowServiceAnalyticsDialog] = useState(false);
+  const [showServicePricingDialog, setShowServicePricingDialog] = useState(false);
+  const [showServiceDeleteDialog, setShowServiceDeleteDialog] = useState(false);
+  const [showServiceDuplicateDialog, setShowServiceDuplicateDialog] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  
+  // Service Search and Filter States
+  const [serviceSearchTerm, setServiceSearchTerm] = useState('');
+  const [serviceFilterCategory, setServiceFilterCategory] = useState<string>('all');
+  const [serviceFilterStatus, setServiceFilterStatus] = useState<string>('all');
+  const [serviceFilterBillable, setServiceFilterBillable] = useState<string>('all');
+  const [serviceSortBy, setServiceSortBy] = useState<'name' | 'price' | 'usage' | 'revenue'>('name');
+  const [serviceSortOrder, setServiceSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Payment Gateway Dialog States
   const [showGatewayConfigDialog, setShowGatewayConfigDialog] = useState(false);
@@ -1113,13 +1342,6 @@ Best regards,
   const [templateFilterCategory, setTemplateFilterCategory] = useState<string>('all');
   const [templateFilterStatus, setTemplateFilterStatus] = useState<string>('all');
   
-  // Service Dialog States
-  const [showServiceEditDialog, setShowServiceEditDialog] = useState(false);
-  const [showServiceAnalyticsDialog, setShowServiceAnalyticsDialog] = useState(false);
-  const [showServiceDeleteDialog, setShowServiceDeleteDialog] = useState(false);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  
   // Form States
   const [gatewayForm, setGatewayForm] = useState({
     name: '',
@@ -1167,29 +1389,24 @@ Best regards,
   const [serviceForm, setServiceForm] = useState({
     name: '',
     description: '',
+    category: 'Other' as Service['category'],
     price: 0,
-    unit: '',
-    category: '',
-    isActive: true,
-    defaultTax: 15
-  });
-
-  // Ticket Dialog States
-  const [showTicketEditDialog, setShowTicketEditDialog] = useState(false);
-  const [showTicketDetailsDialog, setShowTicketDetailsDialog] = useState(false);
-  const [showTicketDeleteDialog, setShowTicketDeleteDialog] = useState(false);
-  const [showTicketAnalyticsDialog, setShowTicketAnalyticsDialog] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [editingTicket, setEditingTicket] = useState<SupportTicket | null>(null);
-
-  // Ticket Form State
-  const [ticketForm, setTicketForm] = useState({
-    title: '',
-    description: '',
-    priority: 'medium' as SupportTicket['priority'],
-    status: 'open' as SupportTicket['status'],
-    category: '',
-    assignee: '',
+    unit: 'hour' as Service['unit'],
+    defaultTax: 15,
+    billable: true,
+    estimatedDuration: 1,
+    requirements: [] as string[],
+    tags: [] as string[],
+    standardRate: 0,
+    discountRate: 0,
+    premiumRate: 0,
+    minimumCharge: 0,
+    maximumCharge: 0,
+    autoInvoice: true,
+    requireApproval: false,
+    trackTime: true,
+    allowDiscounts: true,
+    clientVisible: true
   });
 
   // System Status CRUD Handlers
@@ -2352,16 +2569,15 @@ Best regards,
       priority: template.settings?.priority || 'normal',
       attachments: template.settings?.attachments || []
     });
-    toast({
-      title: "Schedule Template",
-      description: `Scheduling functionality for ${template.name} will be available soon.`,
-    });
+    setShowTemplateScheduleDialog(true);
   };
 
   const getFilteredTemplates = () => {
     return emailTemplates.filter(template => {
       const matchesSearch = template.name.toLowerCase().includes(templateSearchTerm.toLowerCase()) ||
-                           template.subject.toLowerCase().includes(templateSearchTerm.toLowerCase());
+                           template.subject.toLowerCase().includes(templateSearchTerm.toLowerCase()) ||
+                           template.type.toLowerCase().includes(templateSearchTerm.toLowerCase());
+      
       const matchesType = templateFilterType === 'all' || template.type === templateFilterType;
       const matchesCategory = templateFilterCategory === 'all' || template.category === templateFilterCategory;
       const matchesStatus = templateFilterStatus === 'all' || 
@@ -2377,66 +2593,117 @@ Best regards,
     setServiceForm({
       name: '',
       description: '',
+      category: 'Other' as Service['category'],
       price: 0,
-      unit: '',
-      category: '',
-      isActive: true,
-      defaultTax: 15
+      unit: 'hour' as Service['unit'],
+      defaultTax: 15,
+      billable: true,
+      estimatedDuration: 1,
+      requirements: [] as string[],
+      tags: [] as string[],
+      standardRate: 0,
+      discountRate: 0,
+      premiumRate: 0,
+      minimumCharge: 0,
+      maximumCharge: 0,
+      autoInvoice: true,
+      requireApproval: false,
+      trackTime: true,
+      allowDiscounts: true,
+      clientVisible: true
     });
   };
 
   const handleSaveService = async () => {
     try {
-      if (!serviceForm.name || !serviceForm.description || serviceForm.price <= 0) {
+      // Validate required fields
+      if (!serviceForm.name.trim()) {
         toast({
           title: "Validation Error",
-          description: "Please fill in all required fields with valid values.",
+          description: "Service name is required",
           variant: "destructive"
         });
         return;
       }
 
-      const serviceData: Service = {
-        id: editingService?.id || `service_${Date.now()}`,
+      if (serviceForm.price <= 0) {
+        toast({
+          title: "Validation Error",
+          description: "Service price must be greater than 0",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const newService: Service = {
+        id: editingService ? editingService.id : Date.now().toString(),
         name: serviceForm.name,
         description: serviceForm.description,
+        category: serviceForm.category,
         price: serviceForm.price,
         unit: serviceForm.unit,
-        category: serviceForm.category,
-        isActive: serviceForm.isActive,
+        isActive: true,
+        usage: editingService ? editingService.usage : 0,
         defaultTax: serviceForm.defaultTax,
-        usage: editingService?.usage || 0,
-        analytics: editingService?.analytics || {
+        billable: serviceForm.billable,
+        estimatedDuration: serviceForm.estimatedDuration,
+        requirements: serviceForm.requirements,
+        tags: serviceForm.tags,
+        pricing: {
+          standardRate: serviceForm.standardRate || serviceForm.price,
+          discountRate: serviceForm.discountRate || undefined,
+          premiumRate: serviceForm.premiumRate || undefined,
+          minimumCharge: serviceForm.minimumCharge || undefined,
+          maximumCharge: serviceForm.maximumCharge || undefined
+        },
+        analytics: editingService ? editingService.analytics : {
           totalRevenue: 0,
-          totalUsage: 0,
-          averagePrice: serviceForm.price,
-          monthlyGrowth: 0,
+          averageValue: serviceForm.price,
+          completionRate: 0,
+          clientSatisfaction: 0,
+          monthlyUsage: 0,
+          yearlyUsage: 0,
           lastUsed: new Date()
         },
-        createdAt: editingService?.createdAt || new Date(),
-        updatedAt: new Date()
+        settings: {
+          autoInvoice: serviceForm.autoInvoice,
+          requireApproval: serviceForm.requireApproval,
+          trackTime: serviceForm.trackTime,
+          allowDiscounts: serviceForm.allowDiscounts,
+          clientVisible: serviceForm.clientVisible
+        },
+        createdBy: editingService ? editingService.createdBy : 'Current User',
+        createdAt: editingService ? editingService.createdAt : new Date(),
+        updatedAt: new Date(),
+        lastModifiedBy: 'Current User'
       };
 
       if (editingService) {
+        // Update existing service
         setServices(prev => prev.map(service => 
-          service.id === editingService.id ? serviceData : service
+          service.id === editingService.id ? newService : service
         ));
         toast({
           title: "Service Updated",
-          description: `${serviceData.name} has been updated successfully.`,
+          description: `${newService.name} has been updated successfully.`
         });
       } else {
-        setServices(prev => [...prev, serviceData]);
+        // Add new service
+        setServices(prev => [...prev, newService]);
         toast({
-          title: "Service Created",
-          description: `${serviceData.name} has been created successfully.`,
+          title: "Service Added",
+          description: `${newService.name} has been added successfully.`
         });
       }
 
-      setShowServiceDialog(false);
-      setShowServiceEditDialog(false);
-      setEditingService(null);
+      // Reset form and close dialog
       resetServiceForm();
+      setEditingService(null);
+      setShowServiceDialog(false);
+
     } catch (error) {
       toast({
         title: "Error",
@@ -2451,27 +2718,116 @@ Best regards,
     setServiceForm({
       name: service.name,
       description: service.description,
+      category: service.category,
       price: service.price,
       unit: service.unit,
-      category: service.category,
-      isActive: service.isActive,
-      defaultTax: service.defaultTax
+      defaultTax: service.defaultTax,
+      billable: service.billable,
+      estimatedDuration: service.estimatedDuration || 1,
+      requirements: service.requirements || [],
+      tags: service.tags || [],
+      standardRate: service.pricing?.standardRate || service.price,
+      discountRate: service.pricing?.discountRate || 0,
+      premiumRate: service.pricing?.premiumRate || 0,
+      minimumCharge: service.pricing?.minimumCharge || 0,
+      maximumCharge: service.pricing?.maximumCharge || 0,
+      autoInvoice: service.settings?.autoInvoice || true,
+      requireApproval: service.settings?.requireApproval || false,
+      trackTime: service.settings?.trackTime || true,
+      allowDiscounts: service.settings?.allowDiscounts || true,
+      clientVisible: service.settings?.clientVisible || true
     });
-    setShowServiceEditDialog(true);
+    setShowServiceDialog(true);
+  };
+
+  const handleViewServiceDetails = (service: Service) => {
+    setSelectedService(service);
+    setShowServiceDetailsDialog(true);
+  };
+
+  const handleViewServiceAnalytics = (service: Service) => {
+    setSelectedService(service);
+    setShowServiceAnalyticsDialog(true);
+  };
+
+  const handleViewServicePricing = (service: Service) => {
+    setSelectedService(service);
+    setShowServicePricingDialog(true);
   };
 
   const handleDuplicateService = (service: Service) => {
-    setEditingService(null);
-    setServiceForm({
-      name: `${service.name} (Copy)`,
-      description: service.description,
-      price: service.price,
-      unit: service.unit,
-      category: service.category,
-      isActive: service.isActive,
-      defaultTax: service.defaultTax
-    });
-    setShowServiceEditDialog(true);
+    setSelectedService(service);
+    setShowServiceDuplicateDialog(true);
+  };
+
+  const handleConfirmDuplicateService = async () => {
+    if (!selectedService) return;
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const duplicatedService: Service = {
+        ...selectedService,
+        id: Date.now().toString(),
+        name: `${selectedService.name} (Copy)`,
+        usage: 0,
+        analytics: {
+          totalRevenue: 0,
+          averageValue: selectedService.price,
+          completionRate: 0,
+          clientSatisfaction: 0,
+          monthlyUsage: 0,
+          yearlyUsage: 0,
+          lastUsed: new Date()
+        },
+        createdBy: 'Current User',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastModifiedBy: 'Current User'
+      };
+
+      setServices(prev => [...prev, duplicatedService]);
+      
+      toast({
+        title: "Service Duplicated",
+        description: `${duplicatedService.name} has been created successfully.`
+      });
+
+      setShowServiceDuplicateDialog(false);
+      setSelectedService(null);
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate service. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleService = async (serviceId: string) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setServices(prev => prev.map(service => 
+        service.id === serviceId 
+          ? { ...service, isActive: !service.isActive, updatedAt: new Date() }
+          : service
+      ));
+
+      const service = services.find(s => s.id === serviceId);
+      toast({
+        title: "Service Updated",
+        description: `${service?.name} has been ${service?.isActive ? 'deactivated' : 'activated'}.`
+      });
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update service status. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteService = (service: Service) => {
@@ -2483,15 +2839,18 @@ Best regards,
     if (!selectedService) return;
 
     try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       setServices(prev => prev.filter(service => service.id !== selectedService.id));
       
       toast({
         title: "Service Deleted",
-        description: `${selectedService.name} has been deleted successfully.`,
+        description: `${selectedService.name} has been deleted successfully.`
       });
-      
+
       setShowServiceDeleteDialog(false);
       setSelectedService(null);
+
     } catch (error) {
       toast({
         title: "Error",
@@ -2501,31 +2860,49 @@ Best regards,
     }
   };
 
-  const handleViewServiceAnalytics = (service: Service) => {
-    setSelectedService(service);
-    setShowServiceAnalyticsDialog(true);
-  };
-
-  const handleToggleService = async (serviceId: string) => {
-    try {
-      setServices(prev => prev.map(service => 
-        service.id === serviceId 
-          ? { ...service, isActive: !service.isActive, updatedAt: new Date() }
-          : service
-      ));
+  const getFilteredServices = () => {
+    return services.filter(service => {
+      const matchesSearch = service.name.toLowerCase().includes(serviceSearchTerm.toLowerCase()) ||
+                           service.description.toLowerCase().includes(serviceSearchTerm.toLowerCase());
+      const matchesCategory = serviceFilterCategory === 'all' || service.category === serviceFilterCategory;
+      const matchesStatus = serviceFilterStatus === 'all' || 
+                           (serviceFilterStatus === 'active' && service.isActive) ||
+                           (serviceFilterStatus === 'inactive' && !service.isActive);
+      const matchesBillable = serviceFilterBillable === 'all' ||
+                             (serviceFilterBillable === 'billable' && service.billable) ||
+                             (serviceFilterBillable === 'non-billable' && !service.billable);
       
-      const service = services.find(s => s.id === serviceId);
-      toast({
-        title: "Service Updated",
-        description: `${service?.name} has been ${service?.isActive ? 'deactivated' : 'activated'}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update service status. Please try again.",
-        variant: "destructive"
-      });
-    }
+      return matchesSearch && matchesCategory && matchesStatus && matchesBillable;
+    }).sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (serviceSortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'price':
+          aValue = a.price;
+          bValue = b.price;
+          break;
+        case 'usage':
+          aValue = a.usage;
+          bValue = b.usage;
+          break;
+        case 'revenue':
+          aValue = a.analytics?.totalRevenue || 0;
+          bValue = b.analytics?.totalRevenue || 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (serviceSortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
   };
 
   return (
@@ -2982,14 +3359,14 @@ Best regards,
                         </div>
                       </div>
 
-                        {integration.lastSync && (
+                      {integration.lastSync && (
                         <div>
-                            <Label className="text-xs text-gray-500">Last Sync</Label>
-                            <p className="text-xs text-gray-500">
+                          <Label className="text-xs text-gray-500">Last Sync</Label>
+                          <p className="text-xs text-gray-500">
                             {integration.lastSync.toLocaleString()}
-                            </p>
-                          </div>
-                        )}
+                          </p>
+                        </div>
+                      )}
 
                       {integration.usage && integration.isConnected && (
                         <div className="grid grid-cols-2 gap-4 pt-2 border-t">
@@ -2998,7 +3375,7 @@ Best regards,
                             <p className={`text-sm font-medium ${integration.usage.successRate > 95 ? 'text-green-600' : 'text-yellow-600'}`}>
                               {integration.usage.successRate.toFixed(1)}%
                             </p>
-                      </div>
+                          </div>
                           <div>
                             <Label className="text-xs text-gray-500">Monthly Usage</Label>
                             <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -3293,8 +3670,8 @@ Best regards,
                           </div>
                         </div>
                       )}
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </Card>
                 ))
               )}
             </div>
@@ -3313,86 +3690,258 @@ Best regards,
               </Button>
             </div>
 
+            {/* Search and Filter Controls */}
             <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Service Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Usage</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {services.map((service) => (
-                      <TableRow key={service.id}>
-                        <TableCell>
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        placeholder="Search services by name or description..."
+                        value={serviceSearchTerm}
+                        onChange={(e) => setServiceSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={serviceFilterCategory} onValueChange={setServiceFilterCategory}>
+                      <SelectTrigger className="w-36">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="Consultation">Consultation</SelectItem>
+                        <SelectItem value="Documentation">Documentation</SelectItem>
+                        <SelectItem value="Litigation">Litigation</SelectItem>
+                        <SelectItem value="Research">Research</SelectItem>
+                        <SelectItem value="Compliance">Compliance</SelectItem>
+                        <SelectItem value="Corporate">Corporate</SelectItem>
+                        <SelectItem value="Family">Family</SelectItem>
+                        <SelectItem value="Criminal">Criminal</SelectItem>
+                        <SelectItem value="Property">Property</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={serviceFilterStatus} onValueChange={setServiceFilterStatus}>
+                      <SelectTrigger className="w-28">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={serviceFilterBillable} onValueChange={setServiceFilterBillable}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Billable" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="billable">Billable</SelectItem>
+                        <SelectItem value="non-billable">Non-billable</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={`${serviceSortBy}-${serviceSortOrder}`} onValueChange={(value) => {
+                      const [sortBy, sortOrder] = value.split('-');
+                      setServiceSortBy(sortBy as any);
+                      setServiceSortOrder(sortOrder as any);
+                    }}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Sort" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name-asc">Name A-Z</SelectItem>
+                        <SelectItem value="name-desc">Name Z-A</SelectItem>
+                        <SelectItem value="price-asc">Price Low-High</SelectItem>
+                        <SelectItem value="price-desc">Price High-Low</SelectItem>
+                        <SelectItem value="usage-desc">Most Used</SelectItem>
+                        <SelectItem value="revenue-desc">Highest Revenue</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Services Grid */}
+            <div className="grid gap-4">
+              {getFilteredServices().length === 0 ? (
+                <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+                  <CardContent className="p-8 text-center">
+                    <Briefcase size={48} className="mx-auto mb-4 text-gray-400" />
+                    <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      No services found
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-4`}>
+                      {serviceSearchTerm || serviceFilterCategory !== 'all' || serviceFilterStatus !== 'all' || serviceFilterBillable !== 'all'
+                        ? 'No services match your current filters.' 
+                        : 'Get started by creating your first service offering.'}
+                    </p>
+                    <Button onClick={() => setShowServiceDialog(true)}>
+                      <Plus size={16} className="mr-2" />
+                      Create Service
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                getFilteredServices().map((service) => (
+                  <Card key={service.id} className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-lg ${
+                            service.category === 'Consultation' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                            service.category === 'Documentation' ? 'bg-green-100 dark:bg-green-900/30' :
+                            service.category === 'Litigation' ? 'bg-red-100 dark:bg-red-900/30' :
+                            service.category === 'Research' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                            service.category === 'Compliance' ? 'bg-orange-100 dark:bg-orange-900/30' :
+                            'bg-gray-100 dark:bg-gray-900/30'
+                          }`}>
+                            <Briefcase size={24} className={`${
+                              service.category === 'Consultation' ? 'text-blue-600' :
+                              service.category === 'Documentation' ? 'text-green-600' :
+                              service.category === 'Litigation' ? 'text-red-600' :
+                              service.category === 'Research' ? 'text-purple-600' :
+                              service.category === 'Compliance' ? 'text-orange-600' :
+                              'text-gray-600'
+                            }`} />
+                          </div>
                           <div>
-                            <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                               {service.name}
-                            </p>
+                            </h3>
                             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                               {service.description}
                             </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{service.category}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {formatCurrency(service.price)}
-                          </span>
-                        </TableCell>
-                        <TableCell>{service.unit}</TableCell>
-                        <TableCell>
-                          <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {service.usage} times
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(service.isActive ? 'active' : 'inactive')}>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={service.isActive}
+                            onCheckedChange={() => handleToggleService(service.id)}
+                          />
+                          <Badge 
+                            variant={service.isActive ? "default" : "secondary"}
+                            className={service.isActive ? "bg-green-100 text-green-800" : ""}
+                          >
                             {service.isActive ? 'Active' : 'Inactive'}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
-                                <MoreHorizontal size={14} />
+                                <MoreHorizontal size={16} />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewServiceDetails(service)}>
+                                <Eye size={14} className="mr-2" />
+                                View Details
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditService(service)}>
                                 <Edit size={14} className="mr-2" />
                                 Edit Service
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewServicePricing(service)}>
+                                <DollarSign size={14} className="mr-2" />
+                                Pricing
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewServiceAnalytics(service)}>
+                                <BarChart3 size={14} className="mr-2" />
+                                Analytics
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleDuplicateService(service)}>
                                 <Copy size={14} className="mr-2" />
                                 Duplicate
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewServiceAnalytics(service)}>
-                                <BarChart3 size={14} className="mr-2" />
-                                Usage Analytics
-                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleDeleteService(service)} className="text-red-600">
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteService(service)}
+                                className="text-red-600 focus:text-red-600"
+                              >
                                 <Trash2 size={14} className="mr-2" />
                                 Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <Label className="text-xs text-gray-500">Category</Label>
+                          <Badge variant="outline" className="text-xs">
+                            {service.category}
+                          </Badge>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-500">Price</Label>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {formatCurrency(service.price)} / {service.unit}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-500">Usage</Label>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {service.usage} times
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-500">Revenue</Label>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {formatCurrency(service.analytics?.totalRevenue || 0)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {service.analytics && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+                          <div>
+                            <Label className="text-xs text-gray-500">Completion Rate</Label>
+                            <p className={`text-sm font-medium ${service.analytics.completionRate > 90 ? 'text-green-600' : 'text-yellow-600'}`}>
+                              {service.analytics.completionRate}%
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">Satisfaction</Label>
+                            <p className={`text-sm font-medium ${service.analytics.clientSatisfaction > 4.5 ? 'text-green-600' : 'text-yellow-600'}`}>
+                              {service.analytics.clientSatisfaction.toFixed(1)}/5.0
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">Avg. Value</Label>
+                            <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {formatCurrency(service.analytics.averageValue)}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">Last Used</Label>
+                            <p className="text-xs text-gray-500">
+                              {service.analytics.lastUsed.toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {service.tags && service.tags.length > 0 && (
+                        <div className="mt-4">
+                          <Label className="text-xs text-gray-500">Tags</Label>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {service.tags.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </TabsContent>
 
           {/* Support Tickets Tab */}
@@ -3402,18 +3951,7 @@ Best regards,
                 <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Support Tickets</h2>
                 <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Track and manage your support requests</p>
               </div>
-              <Button onClick={() => {
-                setEditingTicket(null);
-                setTicketForm({
-                  title: '',
-                  description: '',
-                  priority: 'medium',
-                  status: 'open',
-                  category: '',
-                  assignee: '',
-                });
-                setShowTicketEditDialog(true);
-              }}>
+              <Button onClick={() => setShowTicketDialog(true)}>
                 <Plus size={16} className="mr-2" />
                 New Ticket
               </Button>
@@ -3476,57 +4014,17 @@ Best regards,
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedTicket(ticket);
-                                setShowTicketDetailsDialog(true);
-                              }}>
+                              <DropdownMenuItem>
                                 <Eye size={14} className="mr-2" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setEditingTicket(ticket);
-                                setTicketForm({
-                                  title: ticket.title,
-                                  description: ticket.description,
-                                  priority: ticket.priority,
-                                  status: ticket.status,
-                                  category: ticket.category,
-                                  assignee: ticket.assignee,
-                                });
-                                setShowTicketEditDialog(true);
-                              }}>
-                                <Edit size={14} className="mr-2" />
-                                Edit Ticket
+                              <DropdownMenuItem>
+                                <MessageSquare size={14} className="mr-2" />
+                                Add Response
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setEditingTicket(null);
-                                setTicketForm({
-                                  title: `${ticket.title} (Copy)`,
-                                  description: ticket.description,
-                                  priority: ticket.priority,
-                                  status: 'open',
-                                  category: ticket.category,
-                                  assignee: ticket.assignee,
-                                });
-                                setShowTicketEditDialog(true);
-                              }}>
-                                <Copy size={14} className="mr-2" />
-                                Duplicate
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedTicket(ticket);
-                                setShowTicketAnalyticsDialog(true);
-                              }}>
-                                <BarChart3 size={14} className="mr-2" />
-                                Analytics
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedTicket(ticket);
-                                setShowTicketDeleteDialog(true);
-                              }} className="text-red-600">
-                                <Trash2 size={14} className="mr-2" />
-                                Delete
+                              <DropdownMenuItem>
+                                <CheckCircle size={14} className="mr-2" />
+                                Mark Resolved
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -5875,20 +6373,21 @@ Best regards,
         </DialogContent>
       </Dialog>
 
-      {/* Service Edit Dialog */}
-      <Dialog open={showServiceEditDialog} onOpenChange={setShowServiceEditDialog}>
-        <DialogContent>
+      {/* Service Add/Edit Dialog */}
+      <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editingService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
+            <DialogTitle>
+              {editingService ? 'Edit Service' : 'Add New Service'}
+            </DialogTitle>
             <DialogDescription>
-              {editingService ? 'Update service information' : 'Create a new service offering'}
+              {editingService ? 'Update service details and pricing' : 'Create a new service offering for your practice'}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="service-name">Service Name</Label>
+                <Label htmlFor="service-name">Service Name *</Label>
                 <Input
                   id="service-name"
                   value={serviceForm.name}
@@ -5897,85 +6396,272 @@ Best regards,
                 />
               </div>
               <div>
-                <Label htmlFor="service-category">Category</Label>
-                <Input
-                  id="service-category"
-                  value={serviceForm.category}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, category: e.target.value }))}
-                  placeholder="Enter category"
-                />
+                <Label htmlFor="service-category">Category *</Label>
+                <Select value={serviceForm.category} onValueChange={(value) => setServiceForm(prev => ({ ...prev, category: value as Service['category'] }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Consultation">Consultation</SelectItem>
+                    <SelectItem value="Documentation">Documentation</SelectItem>
+                    <SelectItem value="Litigation">Litigation</SelectItem>
+                    <SelectItem value="Research">Research</SelectItem>
+                    <SelectItem value="Compliance">Compliance</SelectItem>
+                    <SelectItem value="Corporate">Corporate</SelectItem>
+                    <SelectItem value="Family">Family</SelectItem>
+                    <SelectItem value="Criminal">Criminal</SelectItem>
+                    <SelectItem value="Property">Property</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div>
               <Label htmlFor="service-description">Description</Label>
-              <Input
+              <Textarea
                 id="service-description"
                 value={serviceForm.description}
                 onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe this service"
+                placeholder="Describe the service offering"
+                rows={3}
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="service-price">Price</Label>
+                <Label htmlFor="service-price">Price *</Label>
                 <Input
                   id="service-price"
                   type="number"
                   value={serviceForm.price}
                   onChange={(e) => setServiceForm(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
                   placeholder="0.00"
+                  min="0"
                   step="0.01"
                 />
               </div>
               <div>
-                <Label htmlFor="service-unit">Unit</Label>
-                <Input
-                  id="service-unit"
-                  value={serviceForm.unit}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, unit: e.target.value }))}
-                  placeholder="hour, document, etc."
-                />
+                <Label htmlFor="service-unit">Unit *</Label>
+                <Select value={serviceForm.unit} onValueChange={(value) => setServiceForm(prev => ({ ...prev, unit: value as Service['unit'] }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hour">Hour</SelectItem>
+                    <SelectItem value="document">Document</SelectItem>
+                    <SelectItem value="appearance">Appearance</SelectItem>
+                    <SelectItem value="case">Case</SelectItem>
+                    <SelectItem value="fixed">Fixed Price</SelectItem>
+                    <SelectItem value="consultation">Consultation</SelectItem>
+                    <SelectItem value="page">Page</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label htmlFor="service-tax">Default Tax (%)</Label>
+                <Label htmlFor="service-tax">Tax Rate (%)</Label>
                 <Input
                   id="service-tax"
                   type="number"
                   value={serviceForm.defaultTax}
                   onChange={(e) => setServiceForm(prev => ({ ...prev, defaultTax: parseFloat(e.target.value) || 0 }))}
                   placeholder="15"
-                  step="0.01"
+                  min="0"
+                  max="100"
+                  step="0.1"
                 />
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="service-active"
-                checked={serviceForm.isActive}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded border-gray-300"
-                aria-label="Mark service as active"
-              />
-              <Label htmlFor="service-active">Active Service</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="service-duration">Est. Duration (hours)</Label>
+                <Input
+                  id="service-duration"
+                  type="number"
+                  value={serviceForm.estimatedDuration}
+                  onChange={(e) => setServiceForm(prev => ({ ...prev, estimatedDuration: parseFloat(e.target.value) || 0 }))}
+                  placeholder="1"
+                  min="0"
+                  step="0.25"
+                />
+              </div>
+              <div className="flex items-center space-x-2 pt-6">
+                <Checkbox
+                  id="service-billable"
+                  checked={serviceForm.billable}
+                  onCheckedChange={(checked) => setServiceForm(prev => ({ ...prev, billable: checked as boolean }))}
+                />
+                <Label htmlFor="service-billable">Billable Service</Label>
+              </div>
+            </div>
+
+            <div>
+              <Label>Service Settings</Label>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="service-auto-invoice"
+                    checked={serviceForm.autoInvoice}
+                    onCheckedChange={(checked) => setServiceForm(prev => ({ ...prev, autoInvoice: checked as boolean }))}
+                  />
+                  <Label htmlFor="service-auto-invoice">Auto Invoice</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="service-require-approval"
+                    checked={serviceForm.requireApproval}
+                    onCheckedChange={(checked) => setServiceForm(prev => ({ ...prev, requireApproval: checked as boolean }))}
+                  />
+                  <Label htmlFor="service-require-approval">Require Approval</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="service-track-time"
+                    checked={serviceForm.trackTime}
+                    onCheckedChange={(checked) => setServiceForm(prev => ({ ...prev, trackTime: checked as boolean }))}
+                  />
+                  <Label htmlFor="service-track-time">Track Time</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="service-allow-discounts"
+                    checked={serviceForm.allowDiscounts}
+                    onCheckedChange={(checked) => setServiceForm(prev => ({ ...prev, allowDiscounts: checked as boolean }))}
+                  />
+                  <Label htmlFor="service-allow-discounts">Allow Discounts</Label>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => {
-                setShowServiceEditDialog(false);
+                setShowServiceDialog(false);
                 setEditingService(null);
                 resetServiceForm();
               }}>
                 Cancel
               </Button>
               <Button onClick={handleSaveService}>
-                {editingService ? 'Update Service' : 'Create Service'}
+                {editingService ? 'Update Service' : 'Add Service'}
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Details Dialog */}
+      <Dialog open={showServiceDetailsDialog} onOpenChange={setShowServiceDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase size={20} />
+              Service Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about {selectedService?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedService && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium">Service Name</Label>
+                  <p className="text-lg font-semibold">{selectedService.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Category</Label>
+                  <Badge variant="outline">{selectedService.category}</Badge>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <p className="text-sm text-gray-600 mt-1">{selectedService.description}</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Price</Label>
+                  <p className="text-lg font-semibold">{formatCurrency(selectedService.price)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Unit</Label>
+                  <p className="text-sm">{selectedService.unit}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Tax Rate</Label>
+                  <p className="text-sm">{selectedService.defaultTax}%</p>
+                </div>
+              </div>
+
+              {selectedService.estimatedDuration && (
+                <div>
+                  <Label className="text-sm font-medium">Estimated Duration</Label>
+                  <p className="text-sm">{selectedService.estimatedDuration} hours</p>
+                </div>
+              )}
+
+              {selectedService.requirements && selectedService.requirements.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium">Requirements</Label>
+                  <ul className="list-disc list-inside text-sm text-gray-600 mt-1">
+                    {selectedService.requirements.map((req, index) => (
+                      <li key={index}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {selectedService.tags && selectedService.tags.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium">Tags</Label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedService.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-sm font-medium">Settings</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={selectedService.settings?.autoInvoice ? 'text-green-500' : 'text-gray-400'} />
+                    <span className="text-sm">Auto Invoice</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={selectedService.settings?.requireApproval ? 'text-green-500' : 'text-gray-400'} />
+                    <span className="text-sm">Require Approval</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={selectedService.settings?.trackTime ? 'text-green-500' : 'text-gray-400'} />
+                    <span className="text-sm">Track Time</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle size={16} className={selectedService.settings?.allowDiscounts ? 'text-green-500' : 'text-gray-400'} />
+                    <span className="text-sm">Allow Discounts</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowServiceDetailsDialog(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  setShowServiceDetailsDialog(false);
+                  handleEditService(selectedService);
+                }}>
+                  Edit Service
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -5983,93 +6669,200 @@ Best regards,
       <Dialog open={showServiceAnalyticsDialog} onOpenChange={setShowServiceAnalyticsDialog}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Service Analytics</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 size={20} />
+              Service Analytics
+            </DialogTitle>
             <DialogDescription>
-              {selectedService && `Usage analytics for ${selectedService.name}`}
+              Performance metrics and insights for {selectedService?.name}
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedService?.analytics && (
+          {selectedService && selectedService.analytics && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign size={20} className="text-blue-600" />
-                    <h4 className="font-medium">Total Revenue</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(selectedService.analytics.totalRevenue)}
-                  </p>
-                  <p className="text-sm text-gray-600">Generated revenue</p>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 size={20} className="text-green-600" />
-                    <h4 className="font-medium">Total Usage</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-green-600">
-                    {selectedService.analytics.totalUsage}
-                  </p>
-                  <p className="text-sm text-gray-600">Times used</p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-green-600">
+                      {formatCurrency(selectedService.analytics.totalRevenue)}
+                    </div>
+                    <p className="text-xs text-gray-500">Total Revenue</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {selectedService.usage}
+                    </div>
+                    <p className="text-xs text-gray-500">Times Used</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatCurrency(selectedService.analytics.averageValue)}
+                    </div>
+                    <p className="text-xs text-gray-500">Avg Value</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {selectedService.analytics.completionRate}%
+                    </div>
+                    <p className="text-xs text-gray-500">Completion Rate</p>
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp size={20} className="text-purple-600" />
-                    <h4 className="font-medium">Monthly Growth</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {selectedService.analytics.monthlyGrowth.toFixed(1)}%
-                  </p>
-                  <p className="text-sm text-gray-600">Growth rate</p>
-                </div>
-
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calculator size={20} className="text-orange-600" />
-                    <h4 className="font-medium">Average Price</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {formatCurrency(selectedService.analytics.averagePrice)}
-                  </p>
-                  <p className="text-sm text-gray-600">Per unit</p>
-                </div>
+                <Card>
+                  <CardContent className="p-4">
+                    <h4 className="font-medium mb-2">Client Satisfaction</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="text-3xl font-bold text-yellow-600">
+                        {selectedService.analytics.clientSatisfaction.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-gray-500">/ 5.0</div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-yellow-600 h-2 rounded-full" 
+                        style={{ width: `${(selectedService.analytics.clientSatisfaction / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <h4 className="font-medium mb-2">Usage Trends</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Monthly</span>
+                        <span className="text-sm font-medium">{selectedService.analytics.monthlyUsage}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Yearly</span>
+                        <span className="text-sm font-medium">{selectedService.analytics.yearlyUsage}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Last Used</span>
+                        <span className="text-sm font-medium">{selectedService.analytics.lastUsed.toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-3">Service Insights</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Service category:</span>
-                    <span className="font-medium">{selectedService.category}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Current price:</span>
-                    <span className="font-medium">{formatCurrency(selectedService.price)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Default tax rate:</span>
-                    <span className="font-medium">{selectedService.defaultTax}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className={`font-medium ${selectedService.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                      {selectedService.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Last used:</span>
-                    <span className="font-medium">
-                      {selectedService.analytics.lastUsed.toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setShowServiceAnalyticsDialog(false)}>
+                  Close
+                </Button>
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Pricing Dialog */}
+      <Dialog open={showServicePricingDialog} onOpenChange={setShowServicePricingDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign size={20} />
+              Service Pricing
+            </DialogTitle>
+            <DialogDescription>
+              Pricing structure for {selectedService?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedService && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Standard Rate</Label>
+                  <p className="text-lg font-semibold">{formatCurrency(selectedService.pricing?.standardRate || selectedService.price)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Unit</Label>
+                  <p className="text-sm">{selectedService.unit}</p>
+                </div>
+              </div>
+
+              {selectedService.pricing?.discountRate && (
+                <div>
+                  <Label className="text-sm font-medium">Discount Rate</Label>
+                  <p className="text-lg font-semibold text-green-600">{formatCurrency(selectedService.pricing.discountRate)}</p>
+                </div>
+              )}
+
+              {selectedService.pricing?.premiumRate && (
+                <div>
+                  <Label className="text-sm font-medium">Premium Rate</Label>
+                  <p className="text-lg font-semibold text-purple-600">{formatCurrency(selectedService.pricing.premiumRate)}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                {selectedService.pricing?.minimumCharge && (
+                  <div>
+                    <Label className="text-sm font-medium">Minimum Charge</Label>
+                    <p className="text-sm">{formatCurrency(selectedService.pricing.minimumCharge)}</p>
+                  </div>
+                )}
+                {selectedService.pricing?.maximumCharge && (
+                  <div>
+                    <Label className="text-sm font-medium">Maximum Charge</Label>
+                    <p className="text-sm">{formatCurrency(selectedService.pricing.maximumCharge)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Tax Rate</Label>
+                <p className="text-sm">{selectedService.defaultTax}%</p>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowServicePricingDialog(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  setShowServicePricingDialog(false);
+                  handleEditService(selectedService);
+                }}>
+                  Edit Pricing
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Service Duplicate Dialog */}
+      <Dialog open={showServiceDuplicateDialog} onOpenChange={setShowServiceDuplicateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicate Service</DialogTitle>
+            <DialogDescription>
+              Create a copy of "{selectedService?.name}" with all settings preserved
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <p className="text-sm">
+                This will create an exact copy of the service with "(Copy)" added to the name. 
+                You can edit the duplicated service after creation.
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowServiceDuplicateDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleConfirmDuplicateService}>
+                Duplicate Service
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -6079,501 +6872,32 @@ Best regards,
           <DialogHeader>
             <DialogTitle>Delete Service</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this service?
+              Are you sure you want to delete "{selectedService?.name}"?
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedService && (
-            <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle size={16} className="text-red-600" />
-                  <span className="font-medium text-red-800">Warning</span>
-                </div>
-                <p className="text-sm text-red-700">
-                  Deleting <strong>{selectedService.name}</strong> will permanently remove the service and all its data. 
-                  This action cannot be undone.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowServiceDeleteDialog(false)}>
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={handleConfirmDeleteService}>
-                  <Trash2 size={16} className="mr-2" />
-                  Delete Service
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Service Dialog (for Add button) */}
-      <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Service</DialogTitle>
-            <DialogDescription>
-              Create a new service offering for your business
-            </DialogDescription>
-          </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="new-service-name">Service Name</Label>
-                <Input
-                  id="new-service-name"
-                  value={serviceForm.name}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter service name"
-                />
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle size={16} className="text-red-600" />
+                <span className="font-medium text-red-600">Warning</span>
               </div>
-              <div>
-                <Label htmlFor="new-service-category">Category</Label>
-                <Input
-                  id="new-service-category"
-                  value={serviceForm.category}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, category: e.target.value }))}
-                  placeholder="Enter category"
-                />
-              </div>
+              <p className="text-sm text-red-700 dark:text-red-300">
+                This action cannot be undone. Deleting this service will remove all associated 
+                data including pricing, analytics, and usage history.
+              </p>
             </div>
-
-            <div>
-              <Label htmlFor="new-service-description">Description</Label>
-              <Input
-                id="new-service-description"
-                value={serviceForm.description}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe this service"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="new-service-price">Price</Label>
-                <Input
-                  id="new-service-price"
-                  type="number"
-                  value={serviceForm.price}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                  placeholder="0.00"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-service-unit">Unit</Label>
-                <Input
-                  id="new-service-unit"
-                  value={serviceForm.unit}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, unit: e.target.value }))}
-                  placeholder="hour, document, etc."
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-service-tax">Default Tax (%)</Label>
-                <Input
-                  id="new-service-tax"
-                  type="number"
-                  value={serviceForm.defaultTax}
-                  onChange={(e) => setServiceForm(prev => ({ ...prev, defaultTax: parseFloat(e.target.value) || 0 }))}
-                  placeholder="15"
-                  step="0.01"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="new-service-active"
-                checked={serviceForm.isActive}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded border-gray-300"
-                aria-label="Mark service as active"
-              />
-              <Label htmlFor="new-service-active">Active Service</Label>
-            </div>
-
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => {
-                setShowServiceDialog(false);
-                resetServiceForm();
-              }}>
+              <Button variant="outline" onClick={() => setShowServiceDeleteDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSaveService}>
-                Create Service
+              <Button variant="destructive" onClick={handleConfirmDeleteService}>
+                Delete Service
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Ticket Edit Dialog */}
-      <Dialog open={showTicketEditDialog} onOpenChange={setShowTicketEditDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingTicket ? 'Edit Support Ticket' : 'Create New Support Ticket'}</DialogTitle>
-            <DialogDescription>
-              {editingTicket ? 'Update the details for this support ticket' : 'Fill in the details for your new support ticket'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-ticket-title">Ticket Title</Label>
-                <Input
-                  id="edit-ticket-title"
-                  value={ticketForm.title}
-                  onChange={(e) => setTicketForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enter ticket title"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-ticket-category">Category</Label>
-                <Input
-                  id="edit-ticket-category"
-                  value={ticketForm.category}
-                  onChange={(e) => setTicketForm(prev => ({ ...prev, category: e.target.value }))}
-                  placeholder="Enter category"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-ticket-description">Description</Label>
-              <Textarea
-                id="edit-ticket-description"
-                value={ticketForm.description}
-                onChange={(e) => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter ticket description"
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-ticket-priority">Priority</Label>
-                <Select value={ticketForm.priority} onValueChange={(value) => setTicketForm(prev => ({ ...prev, priority: value as SupportTicket['priority'] }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="edit-ticket-status">Status</Label>
-                <Select value={ticketForm.status} onValueChange={(value) => setTicketForm(prev => ({ ...prev, status: value as SupportTicket['status'] }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="edit-ticket-assignee">Assignee</Label>
-              <Input
-                id="edit-ticket-assignee"
-                value={ticketForm.assignee}
-                onChange={(e) => setTicketForm(prev => ({ ...prev, assignee: e.target.value }))}
-                placeholder="Enter assignee email"
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowTicketEditDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                if (editingTicket) {
-                  // Update existing ticket
-                  const updatedTicket = { 
-                    ...editingTicket, 
-                    ...ticketForm,
-                    updatedAt: new Date()
-                  };
-                  setSupportTickets(prev => prev.map(ticket => 
-                    ticket.id === editingTicket.id ? updatedTicket : ticket
-                  ));
-                } else {
-                  // Create new ticket
-                  const newTicket: SupportTicket = {
-                    id: (supportTickets.length + 1).toString(),
-                    title: ticketForm.title,
-                    description: ticketForm.description,
-                    priority: ticketForm.priority,
-                    status: ticketForm.status,
-                    category: ticketForm.category,
-                    assignee: ticketForm.assignee,
-                    responses: 0,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    analytics: {
-                      responseTimeAvg: 0,
-                      resolutionTimeAvg: 0,
-                      satisfactionRate: 0
-                    }
-                  };
-                  setSupportTickets(prev => [...prev, newTicket]);
-                }
-                setShowTicketEditDialog(false);
-                setEditingTicket(null);
-                setTicketForm({
-                  title: '',
-                  description: '',
-                  priority: 'medium' as SupportTicket['priority'],
-                  status: 'open' as SupportTicket['status'],
-                  category: '',
-                  assignee: '',
-                });
-              }}>
-                <Save size={16} className="mr-2" />
-                {editingTicket ? 'Save Changes' : 'Create Ticket'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Ticket Details Dialog */}
-      <Dialog open={showTicketDetailsDialog} onOpenChange={setShowTicketDetailsDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Ticket Details</DialogTitle>
-            <DialogDescription>
-              {selectedTicket && `Complete information for ticket #${selectedTicket.id}`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedTicket && (
-            <div className="space-y-6">
-              {/* Basic Information */}
-              <div>
-                <h4 className="font-medium mb-3">Basic Information</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs text-gray-500">Ticket Title</Label>
-                    <p className="font-medium">{selectedTicket.title}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Category</Label>
-                    <p className="font-medium">{selectedTicket.category}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Priority</Label>
-                    <Badge className={getPriorityColor(selectedTicket.priority)}>
-                      {selectedTicket.priority}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">Status</Label>
-                    <Badge className={getStatusColor(selectedTicket.status)}>
-                      {selectedTicket.status}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <h4 className="font-medium mb-3">Description</h4>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <pre className="whitespace-pre-wrap text-sm">{selectedTicket.description}</pre>
-                </div>
-              </div>
-
-              {/* Analytics */}
-              {selectedTicket.analytics && (
-                <div>
-                  <h4 className="font-medium mb-3">Analytics</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-gray-500">Average Response Time</Label>
-                      <p className="font-medium">{selectedTicket.analytics.responseTimeAvg} hours</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">Average Resolution Time</Label>
-                      <p className="font-medium">{selectedTicket.analytics.resolutionTimeAvg} hours</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-gray-500">Satisfaction Rate</Label>
-                      <p className="font-medium">{selectedTicket.analytics.satisfactionRate}%</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Assignee */}
-              <div>
-                <h4 className="font-medium mb-3">Assignee</h4>
-                <p>{selectedTicket.assignee}</p>
-              </div>
-
-              {/* Responses */}
-              <div>
-                <h4 className="font-medium mb-3">Responses</h4>
-                <p>{selectedTicket.responses}</p>
-              </div>
-
-              {/* Timestamps */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div>
-                  <Label className="text-xs text-gray-500">Created</Label>
-                  <p className="text-sm">{selectedTicket.createdAt.toLocaleString()}</p>
-                </div>
-                <div>
-                  <Label className="text-xs text-gray-500">Last Updated</Label>
-                  <p className="text-sm">{selectedTicket.updatedAt.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Ticket Delete Dialog */}
-      <Dialog open={showTicketDeleteDialog} onOpenChange={setShowTicketDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Ticket</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this support ticket?
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedTicket && (
-            <div className="space-y-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle size={16} className="text-red-600" />
-                  <span className="font-medium text-red-800">Warning</span>
-                </div>
-                <p className="text-sm text-red-700">
-                  Deleting <strong>{selectedTicket.title}</strong> will permanently remove the ticket and all its data. 
-                  This action cannot be undone.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowTicketDeleteDialog(false)}>
-                  Cancel
-                </Button>
-                <Button variant="destructive" onClick={() => {
-                  setSupportTickets(prev => prev.filter(ticket => ticket.id !== selectedTicket.id));
-                  setShowTicketDeleteDialog(false);
-                  setSelectedTicket(null);
-                }}>
-                  <Trash2 size={16} className="mr-2" />
-                  Delete Ticket
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Ticket Analytics Dialog */}
-      <Dialog open={showTicketAnalyticsDialog} onOpenChange={setShowTicketAnalyticsDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Ticket Analytics</DialogTitle>
-            <DialogDescription>
-              {selectedTicket && `Detailed analytics for ticket #${selectedTicket.id}`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedTicket?.analytics && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare size={20} className="text-blue-600" />
-                    <h4 className="font-medium">Total Responses</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {selectedTicket.responses}
-                  </p>
-                  <p className="text-sm text-gray-600">Total responses</p>
-                </div>
-
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle size={20} className="text-green-600" />
-                    <h4 className="font-medium">Resolved Responses</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-green-600">
-                    {selectedTicket.responses - selectedTicket.analytics.responseTimeAvg}
-                  </p>
-                  <p className="text-sm text-gray-600">Responses resolved without delay</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock size={20} className="text-purple-600" />
-                    <h4 className="font-medium">Average Response Time</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {selectedTicket.analytics.responseTimeAvg.toFixed(1)} hours
-                  </p>
-                  <p className="text-sm text-gray-600">Average time to respond</p>
-                </div>
-
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle size={20} className="text-orange-600" />
-                    <h4 className="font-medium">Average Resolution Time</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-orange-600">
-                    {selectedTicket.analytics.resolutionTimeAvg.toFixed(1)} hours
-                  </p>
-                  <p className="text-sm text-gray-600">Average time to resolve</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle size={20} className="text-red-600" />
-                    <h4 className="font-medium">Unresolved Responses</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-red-600">
-                    {selectedTicket.responses - selectedTicket.analytics.responseTimeAvg - selectedTicket.analytics.resolutionTimeAvg}
-                  </p>
-                  <p className="text-sm text-gray-600">Responses delayed</p>
-                </div>
-
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle size={20} className="text-yellow-600" />
-                    <h4 className="font-medium">Unsatisfied Responses</h4>
-                  </div>
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {selectedTicket.analytics.satisfactionRate < 100 ? selectedTicket.analytics.satisfactionRate : 100}%
-                  </p>
-                  <p className="text-sm text-gray-600">Responses not meeting expectations</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+    </div>
     </DashboardLayout>
   );
 };
